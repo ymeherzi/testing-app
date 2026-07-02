@@ -25,8 +25,8 @@ create table matches (
     away_team_id   bigint      not null references teams (id),
     kickoff_utc    timestamptz not null,
     status         varchar(16) not null default 'SCHEDULED',
-    home_score     smallint,
-    away_score     smallint,
+    home_score     integer,
+    away_score     integer,
     provider_ref   varchar(64) unique,
     last_synced_at timestamptz,
     constraint chk_matches_teams_differ check (home_team_id <> away_team_id)
@@ -69,9 +69,9 @@ create table predictions (
     id                  bigint generated always as identity primary key,
     user_id             bigint      not null references users (id),
     gameweek_fixture_id bigint      not null references gameweek_fixtures (id) on delete cascade,
-    home_goals          smallint    not null check (home_goals between 0 and 20),
-    away_goals          smallint    not null check (away_goals between 0 and 20),
-    points              smallint, -- null until the match is scored
+    home_goals          integer     not null check (home_goals between 0 and 20),
+    away_goals          integer     not null check (away_goals between 0 and 20),
+    points              integer, -- null until the match is scored
     scored_at           timestamptz,
     updated_at          timestamptz not null default now(),
     unique (user_id, gameweek_fixture_id)
