@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: predictor
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/predictor}
+    username: ${DB_USER:predictor}
+    password: ${DB_PASSWORD:predictor}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:}
+    ttl: 7d
+  fixtures:
+    provider: ${APP_FIXTURES_PROVIDER:seed}
+  jobs:
+    enabled: ${APP_JOBS_ENABLED:false}
+  footballdata:
+    base-url: https://api.football-data.org/v4
+    api-key: ${FOOTBALL_DATA_API_KEY:}

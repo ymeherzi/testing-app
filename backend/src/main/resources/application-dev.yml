@@ -1,0 +1,19 @@
+# Local development profile: offline seed fixtures, no scheduled jobs,
+# a fixed (insecure) JWT secret so no .env is needed to get started.
+app:
+  jwt:
+    secret: ${JWT_SECRET:dev-only-secret-do-not-use-in-production-0123456789}
+  fixtures:
+    provider: ${APP_FIXTURES_PROVIDER:seed}
+  jobs:
+    enabled: false
+
+spring:
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+
+logging:
+  level:
+    com.predictor: DEBUG
