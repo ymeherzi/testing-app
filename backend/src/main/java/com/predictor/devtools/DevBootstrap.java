@@ -1,8 +1,19 @@
 package com.predictor.devtools;
 
+import com.predictor.catalog.Match;
+import com.predictor.catalog.MatchRepository;
 import com.predictor.fixtures.FixtureSyncService;
+import com.predictor.gameweek.Gameweek;
+import com.predictor.gameweek.GameweekRepository;
+import com.predictor.gameweek.GameweekService;
 import com.predictor.user.User;
 import com.predictor.user.UserRepository;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
@@ -12,8 +23,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 /**
- * Makes a fresh dev environment immediately playable: seeded fixtures and a
- * known admin account (admin@dev.local / admin123!).
+ * Makes a fresh dev environment immediately playable: seeded fixtures, a
+ * known admin account (admin@dev.local / admin123!) and one published
+ * demo gameweek containing every seed match state.
  */
 @Component
 @Profile("dev")
@@ -27,11 +39,21 @@ public class DevBootstrap implements ApplicationRunner {
     private final UserRepository users;
     private final PasswordEncoder passwordEncoder;
     private final FixtureSyncService syncService;
+    private final GameweekRepository gameweeks;
+    private final GameweekService gameweekService;
+    private final MatchRepository matches;
+    private final Clock clock;
 
-    public DevBootstrap(UserRepository users, PasswordEncoder passwordEncoder, FixtureSyncService syncService) {
+    public DevBootstrap(UserRepository users, PasswordEncoder passwordEncoder, FixtureSyncService syncService,
+                        GameweekRepository gameweeks, GameweekService gameweekService,
+                        MatchRepository matches, Clock clock) {
         this.users = users;
         this.passwordEncoder = passwordEncoder;
         this.syncService = syncService;
+        this.gameweeks = gameweeks;
+        this.gameweekService = gameweekService;
+        this.matches = matches;
+        this.clock = clock;
     }
 
     @Override
@@ -46,5 +68,36 @@ public class DevBootstrap implements ApplicationRunner {
         }
         FixtureSyncService.SyncSummary summary = syncService.syncAll();
         log.info("Dev bootstrap: synced {} teams and {} matches", summary.teamsUpserted(), summary.matchesUpserted());
+        if (gameweeks.count() == 0) {
+            publishDemoGameweek();
+        }
+    }
+
+    private void publishDemoGameweek() {
+        Instant now = clock.instant();
+        // The six seeded Premier League matches cover finished, live and upcoming.
+        List<Long> matchIds = matches
+                .findByCompetitionCodeAndKickoffUtcBetweenOrderByKickoffUtcAsc(
+                        "PL", now.minus(Duration.ofDays(3)), now.plus(Duration.ofDays(5)))
+                .stream()
+                .map(Match::getId)
+                .toList();
+        if (matchIds.isEmpty()) {
+            log.warn("Dev bootstrap: no seeded PL matches found, skipping demo gameweek");
+            return;
+        }
+        Long gameweekId = gameweekService
+                .createDraft(currentSeason(), 1, Gameweek.Type.WEEKEND,
+                        now.minus(Duration.ofDays(2)), now.plus(Duration.ofDays(4)))
+                .id();
+        gameweekService.setFixtures(gameweekId, matchIds);
+        gameweekService.publish(gameweekId);
+        log.info("Dev bootstrap: published demo gameweek {} with {} fixtures", gameweekId, matchIds.size());
+    }
+
+    private String currentSeason() {
+        LocalDate today = LocalDate.ofInstant(clock.instant(), ZoneOffset.UTC);
+        int startYear = today.getMonthValue() >= 7 ? today.getYear() : today.getYear() - 1;
+        return "%d-%02d".formatted(startYear, (startYear + 1) % 100);
     }
 }
