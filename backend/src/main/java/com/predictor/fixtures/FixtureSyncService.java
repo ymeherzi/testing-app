@@ -40,6 +40,7 @@ public class FixtureSyncService {
     }
 
     /** Sync all provider-backed competitions over a default window (past week to +30 days). */
+    @Transactional
     public SyncSummary syncAll() {
         LocalDate today = LocalDate.ofInstant(clock.instant(), ZoneOffset.UTC);
         return syncAll(today.minusDays(7), today.plusDays(30));
