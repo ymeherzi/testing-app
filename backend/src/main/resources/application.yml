@@ -14,7 +14,8 @@ spring:
       enabled: true
 
 server:
-  port: 8080
+  port: ${PORT:8080}
+  forward-headers-strategy: framework
 
 management:
   endpoints:
@@ -23,6 +24,9 @@ management:
         include: health,info
 
 app:
+  admin:
+    email: ${APP_ADMIN_EMAIL:}
+    password: ${APP_ADMIN_PASSWORD:}
   jwt:
     secret: ${JWT_SECRET:}
     ttl: 7d

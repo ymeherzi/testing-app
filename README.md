@@ -85,6 +85,36 @@ CI runs both suites on every push (`.github/workflows/ci.yml`).
 | GET/POST/PUT | `/api/admin/gameweeks…`, `/api/admin/matches`, `/api/admin/sync/fixtures` | admin |
 | POST | `/api/dev/matches/{id}/result`, `/api/dev/matches/{id}/kickoff` | admin, dev profile only |
 
+## Deploy to Railway (phone-ready PWA)
+
+The repo ships a production `Dockerfile` (React build baked into the Spring
+Boot jar — one service, no CORS) and a `railway.json`. Steps:
+
+1. **railway.com → New Project → Deploy PostgreSQL.**
+2. **+ New → GitHub Repo** → pick this repo and the branch to deploy.
+   Railway detects the Dockerfile automatically.
+3. On the app service → **Variables**, add:
+
+   | Variable | Value |
+   |---|---|
+   | `DB_URL` | `jdbc:postgresql://${{Postgres.PGHOST}}:${{Postgres.PGPORT}}/${{Postgres.PGDATABASE}}` |
+   | `DB_USER` | `${{Postgres.PGUSER}}` |
+   | `DB_PASSWORD` | `${{Postgres.PGPASSWORD}}` |
+   | `JWT_SECRET` | output of `openssl rand -base64 48` |
+   | `APP_ADMIN_EMAIL` / `APP_ADMIN_PASSWORD` | your admin login (created at first boot) |
+   | `APP_FIXTURES_PROVIDER` | `seed` for demo mode, `footballdata` for real data |
+   | `FOOTBALL_DATA_API_KEY` | only with `footballdata` |
+   | `APP_JOBS_ENABLED` | `true` with `footballdata`, else `false` |
+
+4. **Settings → Networking → Generate Domain.**
+5. Open the URL on your phone; sign in as the admin, hit **Admin → Sync
+   fixtures**, create + publish a gameweek, and share the URL with friends.
+   In the browser menu choose **Add to Home Screen** to install the PWA.
+
+Demo-mode note: the seed provider regenerates fixtures relative to *now* on
+every restart (results reset). With `footballdata` the scheduled jobs keep
+fixtures and results real and results never regress.
+
 ## Roadmap (from the design doc)
 
 Country/club public leagues → private leagues (points + FPL-style H2H) →
