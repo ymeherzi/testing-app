@@ -8,5 +8,7 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
 
     Optional<Team> findByProviderRef(String providerRef);
 
+    Optional<Team> findFirstByNameIgnoreCase(String name);
+
     List<Team> findAllByOrderByNameAsc();
 }

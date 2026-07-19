@@ -27,6 +27,12 @@ public class Competition {
     protected Competition() {
     }
 
+    /** Manually curated competition (no data provider behind it). */
+    public Competition(String code, String name) {
+        this.code = code;
+        this.name = name;
+    }
+
     public Long getId() {
         return id;
     }
