@@ -97,7 +97,7 @@ export function useAdminActions() {
   })
   const simulateResult = useMutation({
     mutationFn: (input: { matchId: number; homeScore: number; awayScore: number }) =>
-      api(`/api/dev/matches/${input.matchId}/result`, {
+      api(`/api/admin/matches/${input.matchId}/result`, {
         method: 'POST',
         body: JSON.stringify({ homeScore: input.homeScore, awayScore: input.awayScore }),
       }),

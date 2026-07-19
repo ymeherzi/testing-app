@@ -186,7 +186,7 @@ export function AdminPage() {
           ))}
         </div>
         <p className="text-xs text-slate-500">
-          Result simulation calls the dev-profile endpoint and only works when the backend runs with the dev profile.
+          Entering a result finalizes the match and scores all predictions immediately.
         </p>
       </section>
     </div>
