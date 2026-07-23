@@ -1,6 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from './client'
-import type { GameweekView, LeagueTable, MatchView, Team, UserProfile } from './types'
+import type {
+  GameweekView,
+  LeagueDetail,
+  LeagueSummary,
+  LeagueTable,
+  MatchView,
+  ScopedTable,
+  Team,
+  UserProfile,
+} from './types'
 
 export function useCurrentGameweek() {
   return useQuery({
@@ -23,6 +32,54 @@ export function useGlobalTable(page: number, size = 50) {
     queryKey: ['table', 'global', page, size],
     queryFn: () => api<LeagueTable>(`/api/leagues/global/table?page=${page}&size=${size}`),
   })
+}
+
+export function useScopedTable(kind: 'country' | 'club', page: number, size = 50) {
+  return useQuery({
+    queryKey: ['table', kind, page, size],
+    queryFn: () => api<ScopedTable>(`/api/leagues/${kind}/table?page=${page}&size=${size}`),
+  })
+}
+
+export function useMyLeagues() {
+  return useQuery({
+    queryKey: ['leagues', 'mine'],
+    queryFn: () => api<LeagueSummary[]>('/api/leagues/mine'),
+  })
+}
+
+export function useLeagueDetail(id: number) {
+  return useQuery({
+    queryKey: ['leagues', 'detail', id],
+    queryFn: () => api<LeagueDetail>(`/api/leagues/${id}`),
+    enabled: id > 0,
+  })
+}
+
+export function useLeagueActions() {
+  const queryClient = useQueryClient()
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['leagues'] })
+  const create = useMutation({
+    mutationFn: (input: { name: string }) =>
+      api<LeagueDetail>('/api/leagues', { method: 'POST', body: JSON.stringify(input) }),
+    onSettled: invalidate,
+  })
+  const join = useMutation({
+    mutationFn: (input: { code: string }) =>
+      api<LeagueDetail>('/api/leagues/join', { method: 'POST', body: JSON.stringify(input) }),
+    onSettled: invalidate,
+  })
+  const leave = useMutation({
+    mutationFn: (leagueId: number) =>
+      api(`/api/leagues/${leagueId}/members/me`, { method: 'DELETE' }),
+    onSettled: invalidate,
+  })
+  const regenerateCode = useMutation({
+    mutationFn: (leagueId: number) =>
+      api<LeagueDetail>(`/api/leagues/${leagueId}/regenerate-code`, { method: 'POST' }),
+    onSettled: invalidate,
+  })
+  return { create, join, leave, regenerateCode }
 }
 
 export function usePredictMutation(gameweekId: number) {

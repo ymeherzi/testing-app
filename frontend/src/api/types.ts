@@ -77,3 +77,42 @@ export interface LeagueTable {
   size: number
   totalPlayers: number
 }
+
+export interface ScopedTable {
+  available: boolean
+  country: string | null
+  clubTeamId: number | null
+  clubName: string | null
+  clubCrestUrl: string | null
+  table: LeagueTable | null
+}
+
+export interface MemberEntry {
+  rank: number
+  userId: number
+  displayName: string
+  country: string | null
+  points: number
+  scoredPredictions: number
+  admin: boolean
+}
+
+export interface LeagueSummary {
+  id: number
+  name: string
+  inviteCode: string
+  admin: boolean
+  memberCount: number
+  myRank: number | null
+  myPoints: number
+}
+
+export interface LeagueDetail {
+  id: number
+  name: string
+  inviteCode: string
+  admin: boolean
+  maxMembers: number
+  members: MemberEntry[]
+  me: MemberEntry | null
+}

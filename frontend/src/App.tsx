@@ -3,11 +3,15 @@ import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom
 import { AuthProvider, useAuth } from './auth/AuthContext'
 import { AppShell } from './components/AppShell'
 import { AdminPage } from './pages/AdminPage'
+import { CreateLeaguePage } from './pages/CreateLeaguePage'
+import { JoinDeepLinkPage } from './pages/JoinDeepLinkPage'
+import { JoinLeaguePage } from './pages/JoinLeaguePage'
+import { LeaguesPage } from './pages/LeaguesPage'
+import { GlobalTablePage, PrivateLeaguePage, ScopedTablePage } from './pages/LeagueTablePage'
 import { LoginPage } from './pages/LoginPage'
 import { PredictPage } from './pages/PredictPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { SignupPage } from './pages/SignupPage'
-import { TablePage } from './pages/TablePage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,10 +37,17 @@ export default function App() {
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
+            <Route path="/join/:code" element={<JoinDeepLinkPage />} />
             <Route element={<RequireAuth />}>
               <Route element={<AppShell />}>
                 <Route path="/" element={<PredictPage />} />
-                <Route path="/table" element={<TablePage />} />
+                <Route path="/table" element={<LeaguesPage />} />
+                <Route path="/table/global" element={<GlobalTablePage />} />
+                <Route path="/table/country" element={<ScopedTablePage kind="country" />} />
+                <Route path="/table/club" element={<ScopedTablePage kind="club" />} />
+                <Route path="/table/create" element={<CreateLeaguePage />} />
+                <Route path="/table/join" element={<JoinLeaguePage />} />
+                <Route path="/table/league/:id" element={<PrivateLeaguePage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route element={<RequireAdmin />}>
                   <Route path="/admin" element={<AdminPage />} />

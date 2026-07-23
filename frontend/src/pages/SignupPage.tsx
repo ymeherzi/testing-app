@@ -4,6 +4,7 @@ import { useTeams } from '../api/queries'
 import { ApiError } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
 import { COUNTRIES } from '../lib/countries'
+import { peekPendingInvite } from '../lib/invite'
 
 export function SignupPage() {
   const { signup } = useAuth()
@@ -47,6 +48,11 @@ export function SignupPage() {
   return (
     <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center bg-slate-950 p-6 text-slate-100">
       <h1 className="mb-1 text-center text-3xl font-extrabold">Join Predictor</h1>
+      {peekPendingInvite() && (
+        <p className="mb-4 rounded-xl border border-emerald-800 bg-emerald-500/10 px-4 py-3 text-center text-sm text-emerald-300">
+          🎟️ You've been invited to a league — create your account and you'll join it automatically.
+        </p>
+      )}
       <p className="mb-8 text-center text-sm text-slate-400">
         Your country and club drop you straight into their public leagues.
       </p>
