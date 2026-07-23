@@ -6,6 +6,8 @@ import com.predictor.fixtures.FixtureSyncService;
 import com.predictor.gameweek.Gameweek;
 import com.predictor.gameweek.GameweekRepository;
 import com.predictor.gameweek.GameweekService;
+import com.predictor.league.LeagueRepository;
+import com.predictor.league.LeagueService;
 import com.predictor.user.User;
 import com.predictor.user.UserRepository;
 import java.time.Clock;
@@ -42,17 +44,21 @@ public class DevBootstrap implements ApplicationRunner {
     private final GameweekRepository gameweeks;
     private final GameweekService gameweekService;
     private final MatchRepository matches;
+    private final LeagueRepository leagues;
+    private final LeagueService leagueService;
     private final Clock clock;
 
     public DevBootstrap(UserRepository users, PasswordEncoder passwordEncoder, FixtureSyncService syncService,
                         GameweekRepository gameweeks, GameweekService gameweekService,
-                        MatchRepository matches, Clock clock) {
+                        MatchRepository matches, LeagueRepository leagues, LeagueService leagueService, Clock clock) {
         this.users = users;
         this.passwordEncoder = passwordEncoder;
         this.syncService = syncService;
         this.gameweeks = gameweeks;
         this.gameweekService = gameweekService;
         this.matches = matches;
+        this.leagues = leagues;
+        this.leagueService = leagueService;
         this.clock = clock;
     }
 
@@ -71,6 +77,21 @@ public class DevBootstrap implements ApplicationRunner {
         if (gameweeks.count() == 0) {
             publishDemoGameweek();
         }
+        seedDemoLeague();
+    }
+
+    private void seedDemoLeague() {
+        if (leagues.count() > 0) {
+            return;
+        }
+        User admin = users.findByEmailIgnoreCase(ADMIN_EMAIL).orElseThrow();
+        var league = leagueService.create(admin.getId(), "Dev Demo League");
+        User friend = users.findByEmailIgnoreCase("friend@dev.local").orElseGet(() -> {
+            User created = new User("friend@dev.local", passwordEncoder.encode("friend123!"), "Friend", "FR", null);
+            return users.save(created);
+        });
+        leagueService.join(friend.getId(), league.inviteCode());
+        log.info("Dev bootstrap: created 'Dev Demo League' — invite code {}", league.inviteCode());
     }
 
     private void publishDemoGameweek() {

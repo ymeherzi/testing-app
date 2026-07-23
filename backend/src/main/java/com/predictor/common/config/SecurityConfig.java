@@ -34,7 +34,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**", "/api/dev/**").hasRole("ADMIN")
                         // SPA shell + static assets (auth happens client-side against /api)
                         .requestMatchers(HttpMethod.GET,
-                                "/", "/index.html", "/login", "/signup", "/table", "/profile", "/admin",
+                                "/", "/index.html", "/login", "/signup", "/table", "/table/**", "/join/**",
+                                "/profile", "/admin",
                                 "/assets/**", "/*.js", "/*.png", "/*.webmanifest", "/*.ico").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2

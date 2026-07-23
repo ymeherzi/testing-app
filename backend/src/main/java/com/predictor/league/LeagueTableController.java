@@ -1,6 +1,7 @@
 package com.predictor.league;
 
 import com.predictor.common.web.CurrentUser;
+import com.predictor.league.LeagueTableService.ScopedTable;
 import com.predictor.league.LeagueTableService.Table;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,7 +23,24 @@ public class LeagueTableController {
     public Table globalTable(Authentication authentication,
                              @RequestParam(defaultValue = "0") int page,
                              @RequestParam(defaultValue = "50") int size) {
-        int boundedSize = Math.clamp(size, 1, MAX_PAGE_SIZE);
-        return leagueTableService.globalTable(CurrentUser.id(authentication), Math.max(page, 0), boundedSize);
+        return leagueTableService.globalTable(CurrentUser.id(authentication), Math.max(page, 0), bounded(size));
+    }
+
+    @GetMapping("/api/leagues/country/table")
+    public ScopedTable countryTable(Authentication authentication,
+                                    @RequestParam(defaultValue = "0") int page,
+                                    @RequestParam(defaultValue = "50") int size) {
+        return leagueTableService.countryTable(CurrentUser.id(authentication), Math.max(page, 0), bounded(size));
+    }
+
+    @GetMapping("/api/leagues/club/table")
+    public ScopedTable clubTable(Authentication authentication,
+                                 @RequestParam(defaultValue = "0") int page,
+                                 @RequestParam(defaultValue = "50") int size) {
+        return leagueTableService.clubTable(CurrentUser.id(authentication), Math.max(page, 0), bounded(size));
+    }
+
+    private static int bounded(int size) {
+        return Math.clamp(size, 1, MAX_PAGE_SIZE);
     }
 }
