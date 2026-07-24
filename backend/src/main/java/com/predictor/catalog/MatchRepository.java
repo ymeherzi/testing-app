@@ -19,4 +19,8 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
 
     /** Matches whose result may change right now: in play, or due to have kicked off. */
     List<Match> findByStatusInAndKickoffUtcBefore(Collection<MatchStatus> statuses, Instant kickoffBefore);
+
+    /** Same window with teams eagerly loaded (used outside transactions). */
+    @EntityGraph(attributePaths = {"homeTeam", "awayTeam"})
+    List<Match> findWithTeamsByStatusInAndKickoffUtcBefore(Collection<MatchStatus> statuses, Instant kickoffBefore);
 }

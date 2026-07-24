@@ -65,7 +65,7 @@ public class EspnLiveScoreService {
      */
     public PollSummary poll() {
         Instant now = clock.instant();
-        List<Match> active = matches.findByStatusInAndKickoffUtcBefore(UPDATABLE, now).stream()
+        List<Match> active = matches.findWithTeamsByStatusInAndKickoffUtcBefore(UPDATABLE, now).stream()
                 .filter(m -> m.getProviderRef() == null || m.getProviderRef().startsWith("espn:"))
                 .filter(m -> m.getKickoffUtc().isAfter(now.minus(Duration.ofHours(8))))
                 .toList();
@@ -160,7 +160,8 @@ public class EspnLiveScoreService {
         String home = normalize(match.getHomeTeam().getName());
         String away = normalize(match.getAwayTeam().getName());
         for (EspnEvent event : events) {
-            if (normalize(event.homeName()).equals(home) && normalize(event.awayName()).equals(away)
+            if (event.kickoff() != null
+                    && normalize(event.homeName()).equals(home) && normalize(event.awayName()).equals(away)
                     && Duration.between(match.getKickoffUtc(), event.kickoff()).abs().toHours() <= 6) {
                 return event;
             }
@@ -184,7 +185,24 @@ public class EspnLiveScoreService {
     record ScoreboardResponse(List<EventJson> events) {
     }
 
-    record EventJson(String id, Instant date, StatusJson status, List<CompetitionJson> competitions) {
+    record EventJson(String id, String date, StatusJson status, List<CompetitionJson> competitions) {
+
+        /** ESPN sends minute-precision timestamps ("…T16:00Z") that Instant.parse rejects. */
+        private static Instant parseDate(String date) {
+            if (date == null) {
+                return null;
+            }
+            try {
+                return Instant.parse(date);
+            } catch (java.time.format.DateTimeParseException e) {
+                try {
+                    return java.time.OffsetDateTime.parse(date,
+                            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm[:ss]X")).toInstant();
+                } catch (java.time.format.DateTimeParseException ignored) {
+                    return null;
+                }
+            }
+        }
 
         EspnEvent parse() {
             if (competitions == null || competitions.isEmpty() || competitions.getFirst().competitors() == null) {
@@ -203,7 +221,7 @@ public class EspnLiveScoreService {
                 return null;
             }
             String state = status != null && status.type() != null ? status.type().state() : "pre";
-            return new EspnEvent(id, home.team().displayName(), away.team().displayName(), date,
+            return new EspnEvent(id, home.team().displayName(), away.team().displayName(), parseDate(date),
                     state, parseScore(home.score()), parseScore(away.score()));
         }
 
