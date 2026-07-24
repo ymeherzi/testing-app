@@ -115,6 +115,32 @@ Demo-mode note: the seed provider regenerates fixtures relative to *now* on
 every restart (results reset). With `footballdata` the scheduled jobs keep
 fixtures and results real and results never regress.
 
+## Before going live — security checklist
+
+Things that are deliberately relaxed while testing and **must be revisited
+before real users sign up**:
+
+- [ ] **`MAIL_LOG_CODES` must be unset.** With it on, six-digit login codes
+      are printed to the application log; anyone who can read logs can take
+      over an account. Off by default — it only exists so the verification
+      flow is testable before a mail provider is configured. Setting
+      `RESEND_API_KEY` removes the need for it entirely.
+- [ ] **Move the JWT out of `localStorage`.** Today the session token is
+      readable by any script on the page (XSS). The intended fix is a
+      refresh token in an HttpOnly cookie; the resource-server side needs no
+      changes.
+- [ ] **Rotate the bootstrap admin password** (`APP_ADMIN_PASSWORD`) and any
+      credential that has been pasted into a chat or issue.
+- [ ] **Add rate limiting** on `/api/auth/*` — code entry is capped at five
+      attempts per code, but nothing yet limits how many codes an address can
+      request.
+
+Reviewed and considered acceptable:
+
+- `DevBootstrap` logs the dev admin password and the demo league's invite
+  code. It runs only under the `dev` profile against a local throwaway
+  database, and the values are fixed and public in this README.
+
 ## Roadmap (from the design doc)
 
 Country/club public leagues → private leagues (points + FPL-style H2H) →

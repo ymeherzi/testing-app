@@ -19,8 +19,13 @@ public class MailConfig {
     @Bean
     public EmailSender emailSender(MailProperties properties, RestClient.Builder restClientBuilder) {
         if (properties.resendApiKey() == null || properties.resendApiKey().isBlank()) {
-            log.warn("No RESEND_API_KEY set — verification codes will be written to the log, not emailed");
-            return new LoggingEmailSender();
+            if (properties.logCodes()) {
+                log.warn("MAIL_LOG_CODES is on: login codes are being written to the log. "
+                        + "Turn this off before real users sign up.");
+            } else {
+                log.warn("No RESEND_API_KEY set — verification emails cannot be delivered");
+            }
+            return new LoggingEmailSender(properties.logCodes());
         }
         return new ResendEmailSender(restClientBuilder, properties);
     }
