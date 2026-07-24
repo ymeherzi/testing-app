@@ -12,7 +12,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class SpaForwardingController {
 
     @GetMapping({"/", "/login", "/signup", "/table", "/table/global", "/table/country", "/table/club",
-            "/table/create", "/table/join", "/table/league/{id}", "/join/{code}", "/profile", "/admin"})
+            "/table/create", "/table/join", "/table/league/{id}", "/join/{code}",
+            "/players/{playerId}", "/profile", "/admin"})
     public String spa() {
         return "forward:/index.html";
     }

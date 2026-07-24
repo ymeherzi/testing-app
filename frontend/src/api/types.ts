@@ -78,6 +78,32 @@ export interface LeagueTable {
   totalPlayers: number
 }
 
+export interface GameweekSummary {
+  id: number
+  season: string
+  weekIndex: number
+  type: 'WEEKEND' | 'MIDWEEK'
+  status: 'DRAFT' | 'PUBLISHED' | 'SCORED'
+  windowStart: string
+  windowEnd: string
+  fixtureCount: number
+  myPoints: number
+  myPredictions: number
+}
+
+export interface PlayerGameweekView {
+  playerId: number
+  displayName: string
+  country: string | null
+  gameweekId: number
+  weekIndex: number
+  season: string
+  points: number
+  revealedCount: number
+  hiddenCount: number
+  fixtures: FixtureView[]
+}
+
 export interface ScopedTable {
   available: boolean
   country: string | null

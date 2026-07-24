@@ -56,6 +56,19 @@ public final class GameweekDtos {
         }
     }
 
+    /** Row in the gameweek history list, with the caller's own return for it. */
+    public record GameweekSummary(Long id, String season, int weekIndex, String type, String status,
+                                  Instant windowStart, Instant windowEnd,
+                                  int fixtureCount, long myPoints, int myPredictions) {
+    }
+
+    /** Another player's gameweek: picks are revealed only once a match locks. */
+    public record PlayerGameweekView(Long playerId, String displayName, String country,
+                                     Long gameweekId, int weekIndex, String season,
+                                     long points, int revealedCount, int hiddenCount,
+                                     List<FixtureView> fixtures) {
+    }
+
     public record MatchView(Long id, String competitionCode, TeamView homeTeam, TeamView awayTeam,
                             Instant kickoffUtc, String status, Integer homeScore, Integer awayScore) {
 

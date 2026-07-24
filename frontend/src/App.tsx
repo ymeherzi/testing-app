@@ -9,6 +9,7 @@ import { JoinLeaguePage } from './pages/JoinLeaguePage'
 import { LeaguesPage } from './pages/LeaguesPage'
 import { GlobalTablePage, PrivateLeaguePage, ScopedTablePage } from './pages/LeagueTablePage'
 import { LoginPage } from './pages/LoginPage'
+import { PlayerPage } from './pages/PlayerPage'
 import { PredictPage } from './pages/PredictPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { SignupPage } from './pages/SignupPage'
@@ -48,6 +49,7 @@ export default function App() {
                 <Route path="/table/create" element={<CreateLeaguePage />} />
                 <Route path="/table/join" element={<JoinLeaguePage />} />
                 <Route path="/table/league/:id" element={<PrivateLeaguePage />} />
+                <Route path="/players/:playerId" element={<PlayerPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route element={<RequireAdmin />}>
                   <Route path="/admin" element={<AdminPage />} />

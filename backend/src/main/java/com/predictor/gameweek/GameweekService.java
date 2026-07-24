@@ -3,11 +3,16 @@ package com.predictor.gameweek;
 import com.predictor.catalog.Match;
 import com.predictor.catalog.MatchRepository;
 import com.predictor.gameweek.GameweekDtos.FixtureView;
+import com.predictor.gameweek.GameweekDtos.GameweekSummary;
 import com.predictor.gameweek.GameweekDtos.GameweekView;
+import com.predictor.gameweek.GameweekDtos.PlayerGameweekView;
 import com.predictor.prediction.Prediction;
 import com.predictor.prediction.PredictionRepository;
+import com.predictor.user.User;
+import com.predictor.user.UserRepository;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -25,14 +30,20 @@ public class GameweekService {
     private final GameweekFixtureRepository fixtures;
     private final MatchRepository matches;
     private final PredictionRepository predictions;
+    private final UserRepository users;
+    private final org.springframework.jdbc.core.simple.JdbcClient jdbc;
     private final Clock clock;
 
     public GameweekService(GameweekRepository gameweeks, GameweekFixtureRepository fixtures,
-                           MatchRepository matches, PredictionRepository predictions, Clock clock) {
+                           MatchRepository matches, PredictionRepository predictions,
+                           UserRepository users, org.springframework.jdbc.core.simple.JdbcClient jdbc,
+                           Clock clock) {
         this.gameweeks = gameweeks;
         this.fixtures = fixtures;
         this.matches = matches;
         this.predictions = predictions;
+        this.users = users;
+        this.jdbc = jdbc;
         this.clock = clock;
     }
 
@@ -50,6 +61,76 @@ public class GameweekService {
                 .filter(gw -> gw.getStatus() != Gameweek.Status.DRAFT)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Gameweek not found"));
         return viewForUser(gameweek, userId);
+    }
+
+    /**
+     * Every playable gameweek, newest first, with the caller's points —
+     * the history list behind the gameweek switcher.
+     */
+    @Transactional(readOnly = true)
+    public List<GameweekSummary> history(long userId) {
+        return jdbc.sql("""
+                        select gw.id, gw.season, gw.week_index, gw.type, gw.status,
+                               gw.window_start, gw.window_end,
+                               (select count(*) from gameweek_fixtures f where f.gameweek_id = gw.id) as fixture_count,
+                               coalesce((select sum(p.points) from predictions p
+                                         join gameweek_fixtures f2 on f2.id = p.gameweek_fixture_id
+                                         where f2.gameweek_id = gw.id and p.user_id = :userId), 0) as my_points,
+                               (select count(*) from predictions p2
+                                join gameweek_fixtures f3 on f3.id = p2.gameweek_fixture_id
+                                where f3.gameweek_id = gw.id and p2.user_id = :userId) as my_predictions
+                        from gameweeks gw
+                        where gw.status <> 'DRAFT'
+                        order by gw.window_start desc
+                        """)
+                .param("userId", userId)
+                .query((rs, i) -> new GameweekSummary(
+                        rs.getLong("id"), rs.getString("season"), rs.getInt("week_index"),
+                        rs.getString("type"), rs.getString("status"),
+                        rs.getTimestamp("window_start").toInstant(), rs.getTimestamp("window_end").toInstant(),
+                        rs.getInt("fixture_count"), rs.getLong("my_points"), rs.getInt("my_predictions")))
+                .list();
+    }
+
+    /**
+     * Another player's gameweek. Their scoreline is revealed only once the
+     * match has locked (design §2.2 anti-copying rule) — before kickoff the
+     * fixture is returned with a null prediction.
+     */
+    @Transactional(readOnly = true)
+    public PlayerGameweekView playerView(long gameweekId, long playerId) {
+        Gameweek gameweek = gameweeks.findById(gameweekId)
+                .filter(gw -> gw.getStatus() != Gameweek.Status.DRAFT)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Gameweek not found"));
+        User player = users.findById(playerId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Player not found"));
+        Map<Long, Prediction> theirs = predictions
+                .findByUserIdAndGameweekFixtureGameweekId(playerId, gameweekId).stream()
+                .collect(Collectors.toMap(p -> p.getGameweekFixture().getId(), Function.identity()));
+        Instant now = clock.instant();
+        List<FixtureView> views = new ArrayList<>();
+        long points = 0;
+        int revealed = 0;
+        int hidden = 0;
+        for (GameweekFixture fixture : fixtures.findByGameweekIdOrderByMatchKickoffUtcAsc(gameweekId)) {
+            boolean locked = isLocked(fixture.getMatch(), now);
+            Prediction prediction = theirs.get(fixture.getId());
+            if (locked) {
+                views.add(FixtureView.of(fixture, true, prediction));
+                if (prediction != null) {
+                    revealed++;
+                    points += prediction.getPoints() == null ? 0 : prediction.getPoints();
+                }
+            } else {
+                views.add(FixtureView.of(fixture, false, null));
+                if (prediction != null) {
+                    hidden++;
+                }
+            }
+        }
+        return new PlayerGameweekView(player.getId(), player.getDisplayName(), player.getCountry(),
+                gameweek.getId(), gameweek.getWeekIndex(), gameweek.getSeason(),
+                points, revealed, hidden, views);
     }
 
     private GameweekView viewForUser(Gameweek gameweek, long userId) {

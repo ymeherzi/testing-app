@@ -1,11 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from './client'
 import type {
+  GameweekSummary,
   GameweekView,
   LeagueDetail,
   LeagueSummary,
   LeagueTable,
   MatchView,
+  PlayerGameweekView,
   ScopedTable,
   Team,
   UserProfile,
@@ -16,6 +18,37 @@ export function useCurrentGameweek() {
     queryKey: ['gameweek', 'current'],
     queryFn: () => api<GameweekView>('/api/gameweeks/current'),
     refetchInterval: 30_000, // live scores flow in during matchdays
+  })
+}
+
+export function useGameweek(gameweekId: number | null) {
+  return useQuery({
+    queryKey: ['gameweek', gameweekId],
+    queryFn: () => api<GameweekView>(`/api/gameweeks/${gameweekId}`),
+    enabled: gameweekId != null && gameweekId > 0,
+    refetchInterval: 30_000,
+  })
+}
+
+export function useGameweekHistory() {
+  return useQuery({
+    queryKey: ['gameweek', 'history'],
+    queryFn: () => api<GameweekSummary[]>('/api/gameweeks'),
+    staleTime: 60_000,
+  })
+}
+
+export function usePlayerGameweek(gameweekId: number | null, playerId: number) {
+  return useQuery({
+    queryKey: ['gameweek', 'player', gameweekId ?? 'current', playerId],
+    queryFn: () =>
+      api<PlayerGameweekView>(
+        gameweekId
+          ? `/api/gameweeks/${gameweekId}/players/${playerId}`
+          : `/api/gameweeks/current/players/${playerId}`,
+      ),
+    enabled: playerId > 0,
+    refetchInterval: 30_000,
   })
 }
 
