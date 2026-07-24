@@ -44,6 +44,7 @@ public class AdminBootstrap implements ApplicationRunner {
         }
         User admin = new User(email, passwordEncoder.encode(password), "Admin", null, null);
         admin.setAdmin(true);
+        admin.markEmailVerified(); // the operator set these credentials themselves
         users.save(admin);
         log.info("Admin bootstrap: created admin account {}", email);
     }

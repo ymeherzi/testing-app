@@ -21,7 +21,20 @@ public final class AuthDtos {
 
     public record LoginRequest(
             @NotBlank @Email String email,
-            @NotBlank String password) {
+            @NotBlank String password,
+            String deviceToken) {
+    }
+
+    public record VerifyRequest(
+            @NotBlank @Email String email,
+            @NotBlank @Size(min = 6, max = 6) String code,
+            boolean rememberDevice) {
+    }
+
+    public record ResendRequest(@NotBlank @Email String email) {
+    }
+
+    public record GoogleRequest(@NotBlank String idToken) {
     }
 
     public record UserResponse(java.util.UUID id, String email, String displayName, String country,
@@ -33,6 +46,19 @@ public final class AuthDtos {
         }
     }
 
-    public record AuthResponse(String token, UserResponse user) {
+    /**
+     * Either the caller is in (token present) or a six-digit code is waiting
+     * in their inbox (verificationRequired).
+     */
+    public record AuthResponse(String token, UserResponse user,
+                               boolean verificationRequired, String email, String deviceToken) {
+
+        public static AuthResponse signedIn(String token, User user, String deviceToken) {
+            return new AuthResponse(token, UserResponse.from(user), false, user.getEmail(), deviceToken);
+        }
+
+        public static AuthResponse codeSent(String email) {
+            return new AuthResponse(null, null, true, email, null);
+        }
     }
 }

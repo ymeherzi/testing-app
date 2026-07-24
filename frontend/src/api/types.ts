@@ -9,8 +9,16 @@ export interface UserProfile {
 }
 
 export interface AuthResponse {
-  token: string
-  user: UserProfile
+  token: string | null
+  user: UserProfile | null
+  /** true when a six-digit code was emailed and is needed to continue */
+  verificationRequired: boolean
+  email: string
+  deviceToken: string | null
+}
+
+export interface AuthOptions {
+  google: boolean
 }
 
 export interface Team {

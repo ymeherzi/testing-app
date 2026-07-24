@@ -2,6 +2,8 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { useT } from '../i18n'
+import { VerifyCodeForm } from '../auth/VerifyCodeForm'
+import { GoogleSignInButton } from '../auth/GoogleSignInButton'
 
 export function LoginPage() {
   const { login } = useAuth()
@@ -11,19 +13,28 @@ export function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null)
 
   const submit = async (event: FormEvent) => {
     event.preventDefault()
     setBusy(true)
     setError(null)
     try {
-      await login(email, password)
-      navigate('/')
+      const outcome = await login(email, password)
+      if (outcome.signedIn) {
+        navigate('/')
+      } else {
+        setPendingEmail(outcome.email)
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : t('auth.loginFailed'))
     } finally {
       setBusy(false)
     }
+  }
+
+  if (pendingEmail) {
+    return <VerifyCodeForm email={pendingEmail} />
   }
 
   return (
@@ -58,6 +69,7 @@ export function LoginPage() {
           {busy ? t('auth.signingIn') : t('auth.signIn')}
         </button>
       </form>
+      <GoogleSignInButton />
       <p className="mt-6 text-center text-sm text-slate-400">
         {t('auth.newHere')}{' '}
         <Link to="/signup" className="font-medium text-emerald-400">

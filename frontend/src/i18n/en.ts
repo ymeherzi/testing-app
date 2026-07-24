@@ -40,6 +40,17 @@ export const en = {
   'auth.signupFailed': 'Signup failed',
   'auth.inviteBanner': "🎟️ You've been invited to a league — create your account and you'll join it automatically.",
   'auth.countryOptional': 'Country (optional)',
+  'auth.or': 'or',
+  'auth.googleFailed': 'Google sign-in did not work',
+
+  'verify.title': 'Check your email',
+  'verify.subtitle': 'We sent a six-digit code to {email}.',
+  'verify.submit': 'Confirm',
+  'verify.checking': 'Checking…',
+  'verify.rememberDevice': "Remember this device — don't ask again for 60 days",
+  'verify.resend': 'Send another code',
+  'verify.resent': 'A new code is on its way.',
+  'verify.failed': 'That code did not work',
   'auth.clubOptional': 'Favourite club (optional)',
 
   'predict.title': 'Gameweek {index}',

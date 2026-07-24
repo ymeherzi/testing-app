@@ -25,6 +25,21 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
+    /**
+     * Carries the reason we threw with ("That code is not right") through to
+     * the client; without this the framework answers with a bare status and
+     * the UI can only show a generic failure.
+     */
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    public org.springframework.http.ResponseEntity<ProblemDetail> handleStatus(
+            org.springframework.web.server.ResponseStatusException ex) {
+        ProblemDetail problem = ProblemDetail.forStatus(ex.getStatusCode());
+        if (ex.getReason() != null) {
+            problem.setDetail(ex.getReason());
+        }
+        return org.springframework.http.ResponseEntity.status(ex.getStatusCode()).body(problem);
+    }
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ProblemDetail handleIntegrity(DataIntegrityViolationException ex) {
         ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);

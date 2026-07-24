@@ -42,7 +42,7 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
     let errors: Record<string, string> | undefined
     try {
       const problem = await response.json()
-      message = problem.detail ?? problem.title ?? message
+      message = problem.detail ?? problem.message ?? problem.title ?? message
       errors = problem.errors
     } catch {
       // non-JSON error body: keep the generic message

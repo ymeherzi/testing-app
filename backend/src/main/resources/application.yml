@@ -16,6 +16,9 @@ spring:
 server:
   port: ${PORT:8080}
   forward-headers-strategy: framework
+  error:
+    # surface the reason on 4xx ("That code is not right") instead of a bare status
+    include-message: always
 
 management:
   endpoints:
@@ -24,6 +27,11 @@ management:
         include: health,info
 
 app:
+  mail:
+    resend-api-key: ${RESEND_API_KEY:}
+    from: ${MAIL_FROM:}
+  google:
+    client-id: ${GOOGLE_CLIENT_ID:}
   admin:
     email: ${APP_ADMIN_EMAIL:}
     password: ${APP_ADMIN_PASSWORD:}

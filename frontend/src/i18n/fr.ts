@@ -38,6 +38,17 @@ export const fr: Messages = {
   'auth.inviteBanner':
     '🎟️ Tu as été invité dans une ligue — crée ton compte et tu la rejoindras automatiquement.',
   'auth.countryOptional': 'Pays (facultatif)',
+  'auth.or': 'ou',
+  'auth.googleFailed': "La connexion Google n'a pas fonctionné",
+
+  'verify.title': 'Vérifie tes e-mails',
+  'verify.subtitle': 'Nous avons envoyé un code à six chiffres à {email}.',
+  'verify.submit': 'Confirmer',
+  'verify.checking': 'Vérification…',
+  'verify.rememberDevice': 'Se souvenir de cet appareil — ne plus demander pendant 60 jours',
+  'verify.resend': 'Renvoyer un code',
+  'verify.resent': 'Un nouveau code arrive.',
+  'verify.failed': "Ce code n'a pas fonctionné",
   'auth.clubOptional': 'Club favori (facultatif)',
 
   'predict.title': 'Journée {index}',

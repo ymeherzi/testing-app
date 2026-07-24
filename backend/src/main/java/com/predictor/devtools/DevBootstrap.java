@@ -69,6 +69,7 @@ public class DevBootstrap implements ApplicationRunner {
         } else {
             User admin = new User(ADMIN_EMAIL, passwordEncoder.encode(ADMIN_PASSWORD), "Admin", null, null);
             admin.setAdmin(true);
+            admin.markEmailVerified();
             users.save(admin);
             log.info("Dev bootstrap: created admin user {} / {}", ADMIN_EMAIL, ADMIN_PASSWORD);
         }
@@ -88,6 +89,7 @@ public class DevBootstrap implements ApplicationRunner {
         var league = leagueService.create(admin.getId(), "Dev Demo League");
         User friend = users.findByEmailIgnoreCase("friend@dev.local").orElseGet(() -> {
             User created = new User("friend@dev.local", passwordEncoder.encode("friend123!"), "Friend", "FR", null);
+            created.markEmailVerified();
             return users.save(created);
         });
         leagueService.join(friend.getId(), league.inviteCode());

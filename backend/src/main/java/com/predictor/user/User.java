@@ -23,8 +23,15 @@ public class User {
     @Column(nullable = false)
     private String email;
 
-    @Column(name = "password_hash", nullable = false)
+    @Column(name = "password_hash")
     private String passwordHash;
+
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified;
+
+    /** Google's stable user id, set for accounts that sign in with Google. */
+    @Column(name = "google_subject", unique = true)
+    private String googleSubject;
 
     @Column(name = "display_name", nullable = false)
     private String displayName;
@@ -89,6 +96,23 @@ public class User {
 
     public void setFavouriteClubTeamId(Long favouriteClubTeamId) {
         this.favouriteClubTeamId = favouriteClubTeamId;
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerified;
+    }
+
+    public void markEmailVerified() {
+        this.emailVerified = true;
+    }
+
+    public String getGoogleSubject() {
+        return googleSubject;
+    }
+
+    public void linkGoogle(String googleSubject) {
+        this.googleSubject = googleSubject;
+        this.emailVerified = true;
     }
 
     public boolean isAdmin() {

@@ -6,6 +6,8 @@ import { useAuth } from '../auth/AuthContext'
 import { countries } from '../lib/countries'
 import { peekPendingInvite } from '../lib/invite'
 import { useT } from '../i18n'
+import { VerifyCodeForm } from '../auth/VerifyCodeForm'
+import { GoogleSignInButton } from '../auth/GoogleSignInButton'
 
 export function SignupPage() {
   const { signup } = useAuth()
@@ -19,20 +21,25 @@ export function SignupPage() {
   const [clubId, setClubId] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null)
 
   const submit = async (event: FormEvent) => {
     event.preventDefault()
     setBusy(true)
     setError(null)
     try {
-      await signup({
+      const outcome = await signup({
         email,
         password,
         displayName,
         country: country || null,
         favouriteClubTeamId: clubId ? Number(clubId) : null,
       })
-      navigate('/')
+      if (outcome.signedIn) {
+        navigate('/')
+      } else {
+        setPendingEmail(outcome.email)
+      }
     } catch (e) {
       if (e instanceof ApiError && e.errors) {
         setError(Object.values(e.errors).join(' · '))
@@ -46,6 +53,10 @@ export function SignupPage() {
 
   const inputClass =
     'w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 outline-none focus:border-emerald-500'
+
+  if (pendingEmail) {
+    return <VerifyCodeForm email={pendingEmail} />
+  }
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center bg-slate-950 p-6 text-slate-100">
@@ -91,6 +102,7 @@ export function SignupPage() {
           {busy ? t('auth.signupPending') : t('auth.signupSubmit')}
         </button>
       </form>
+      <GoogleSignInButton />
       <p className="mt-6 text-center text-sm text-slate-400">
         {t('auth.alreadyPlaying')}{' '}
         <Link to="/login" className="font-medium text-emerald-400">
