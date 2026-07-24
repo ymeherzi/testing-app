@@ -9,6 +9,11 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        // new deploys take control immediately instead of one app-launch later
+        clientsClaim: true,
+        skipWaiting: true,
+      },
       manifest: {
         name: 'Predictor',
         short_name: 'Predictor',
