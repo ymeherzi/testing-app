@@ -7,13 +7,10 @@ interface Props {
   showPoints?: boolean
 }
 
-function dateLabel(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
-}
-
 /**
- * Switches between gameweeks. Gameweeks are identified by number only —
- * weekend/midweek is a scheduling detail, not something players think in.
+ * Switches between gameweeks. Gameweeks are identified by number alone —
+ * they span several days, so neither a cadence label nor a single date
+ * describes them honestly.
  */
 export function GameweekPicker({ history, value, onChange, showPoints = true }: Props) {
   if (!history || history.length <= 1) {
@@ -28,7 +25,7 @@ export function GameweekPicker({ history, value, onChange, showPoints = true }: 
     >
       {history.map((gw) => (
         <option key={gw.id} value={gw.id}>
-          GW{gw.weekIndex} · {dateLabel(gw.windowStart)}
+          GW{gw.weekIndex}
           {showPoints && gw.myPredictions > 0 ? ` · ${gw.myPoints} pts` : ''}
         </option>
       ))}
