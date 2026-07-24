@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTeams, useUpdateProfile } from '../api/queries'
 import { useAuth } from '../auth/AuthContext'
-import { COUNTRIES } from '../lib/countries'
+import { countries } from '../lib/countries'
 
 export function ProfilePage() {
   const { user, logout, updateUser } = useAuth()
@@ -51,7 +51,7 @@ export function ProfilePage() {
           <span className="text-sm text-slate-400">Country</span>
           <select value={country} onChange={(e) => setCountry(e.target.value)} className={inputClass}>
             <option value="">Not set</option>
-            {COUNTRIES.map((c) => (
+            {countries().map((c) => (
               <option key={c.code} value={c.code}>
                 {c.name}
               </option>

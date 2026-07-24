@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useTeams } from '../api/queries'
 import { ApiError } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
-import { COUNTRIES } from '../lib/countries'
+import { countries } from '../lib/countries'
 import { peekPendingInvite } from '../lib/invite'
 
 export function SignupPage() {
@@ -66,7 +66,7 @@ export function SignupPage() {
                onChange={(e) => setDisplayName(e.target.value)} className={inputClass} />
         <select value={country} onChange={(e) => setCountry(e.target.value)} className={inputClass}>
           <option value="">Country (optional)</option>
-          {COUNTRIES.map((c) => (
+          {countries().map((c) => (
             <option key={c.code} value={c.code}>
               {c.name}
             </option>
