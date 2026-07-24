@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FixtureView } from '../api/types'
 import { countdown, kickoffTimeLabel, pointsLabel } from '../lib/format'
+import { score } from '../lib/scoring'
 import { ScoreStepper } from './ScoreStepper'
 import { TeamBadge } from './TeamBadge'
 
@@ -61,6 +62,11 @@ export function MatchCard({ fixture, onSave }: Props) {
   const badge = statusBadge(fixture)
   const remaining = countdown(fixture.kickoffUtc)
   const points = fixture.prediction?.points ?? null
+  // provisional points while a real score exists but official scoring hasn't run
+  const onCourse =
+    fixture.prediction && fixture.homeScore != null && fixture.awayScore != null && points == null
+      ? score(fixture.prediction.homeGoals, fixture.prediction.awayGoals, fixture.homeScore, fixture.awayScore)
+      : null
 
   return (
     <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
@@ -74,10 +80,12 @@ export function MatchCard({ fixture, onSave }: Props) {
           >
             {badge}
           </span>
+        ) : fixture.locked ? (
+          <span className="text-slate-400">awaiting result ⏳</span>
         ) : (
           <span>
             {kickoffTimeLabel(fixture.kickoffUtc)}
-            {!fixture.locked && remaining && <span className="ml-2 text-emerald-400">locks in {remaining}</span>}
+            {remaining && <span className="ml-2 text-emerald-400">locks in {remaining}</span>}
           </span>
         )}
       </header>
@@ -89,16 +97,30 @@ export function MatchCard({ fixture, onSave }: Props) {
         </div>
 
         {fixture.locked ? (
-          <div className="flex flex-col items-center gap-1 px-2">
-            <span className="text-2xl font-bold tabular-nums">
-              {fixture.homeScore ?? '–'} : {fixture.awayScore ?? '–'}
-            </span>
-            {fixture.prediction && (
-              <span className="text-xs text-slate-400">
-                you: {fixture.prediction.homeGoals}-{fixture.prediction.awayGoals}
+          fixture.homeScore != null ? (
+            <div className="flex flex-col items-center gap-1 px-2">
+              <span className="text-2xl font-bold tabular-nums">
+                {fixture.homeScore} : {fixture.awayScore}
               </span>
-            )}
-          </div>
+              {fixture.prediction && (
+                <span className="text-xs text-slate-400">
+                  you: {fixture.prediction.homeGoals}-{fixture.prediction.awayGoals}
+                </span>
+              )}
+            </div>
+          ) : (
+            // locked but no result yet: the user's prediction stays the headline
+            <div className="flex flex-col items-center gap-1 px-2">
+              <span className="text-2xl font-bold tabular-nums text-emerald-300">
+                {fixture.prediction
+                  ? `${fixture.prediction.homeGoals} : ${fixture.prediction.awayGoals}`
+                  : '– : –'}
+              </span>
+              <span className="text-xs text-slate-400">
+                {fixture.prediction ? 'your call' : 'no prediction'}
+              </span>
+            </div>
+          )
         ) : (
           <div className="flex items-start gap-2 px-1">
             <ScoreStepper label={fixture.homeTeam.name} value={homeGoals} onChange={(v) => change(v, awayGoals)} />
@@ -126,9 +148,11 @@ export function MatchCard({ fixture, onSave }: Props) {
           >
             {points} pts · {pointsLabel(points)}
           </span>
-        ) : fixture.locked ? (
-          fixture.prediction == null && <span className="text-slate-500">no prediction</span>
-        ) : !touched ? (
+        ) : onCourse != null ? (
+          <span className="rounded-full bg-amber-500/15 px-2 py-0.5 font-semibold text-amber-300">
+            on course for {onCourse} pts
+          </span>
+        ) : fixture.locked ? null : !touched ? (
           <span className="text-slate-500">set your score</span>
         ) : saveState === 'saving' ? (
           <span className="text-slate-400">saving…</span>

@@ -15,7 +15,7 @@ export function useCurrentGameweek() {
   return useQuery({
     queryKey: ['gameweek', 'current'],
     queryFn: () => api<GameweekView>('/api/gameweeks/current'),
-    refetchInterval: 60_000,
+    refetchInterval: 30_000, // live scores flow in during matchdays
   })
 }
 
@@ -31,6 +31,7 @@ export function useGlobalTable(page: number, size = 50) {
   return useQuery({
     queryKey: ['table', 'global', page, size],
     queryFn: () => api<LeagueTable>(`/api/leagues/global/table?page=${page}&size=${size}`),
+    refetchInterval: 60_000,
   })
 }
 
@@ -38,6 +39,7 @@ export function useScopedTable(kind: 'country' | 'club', page: number, size = 50
   return useQuery({
     queryKey: ['table', kind, page, size],
     queryFn: () => api<ScopedTable>(`/api/leagues/${kind}/table?page=${page}&size=${size}`),
+    refetchInterval: 60_000,
   })
 }
 
@@ -53,6 +55,7 @@ export function useLeagueDetail(id: number) {
     queryKey: ['leagues', 'detail', id],
     queryFn: () => api<LeagueDetail>(`/api/leagues/${id}`),
     enabled: id > 0,
+    refetchInterval: 60_000,
   })
 }
 

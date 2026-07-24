@@ -114,6 +114,11 @@ public class Match {
         return providerRef;
     }
 
+    /** Late binding for manual matches once a live-data source is correlated. */
+    public void setProviderRef(String providerRef) {
+        this.providerRef = providerRef;
+    }
+
     public Instant getLastSyncedAt() {
         return lastSyncedAt;
     }

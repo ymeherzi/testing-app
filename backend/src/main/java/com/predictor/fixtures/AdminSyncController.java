@@ -1,6 +1,7 @@
 package com.predictor.fixtures;
 
 import com.predictor.fixtures.FixtureSyncService.SyncSummary;
+import com.predictor.fixtures.espn.EspnLiveScoreService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -8,13 +9,20 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminSyncController {
 
     private final FixtureSyncService syncService;
+    private final EspnLiveScoreService liveScoreService;
 
-    public AdminSyncController(FixtureSyncService syncService) {
+    public AdminSyncController(FixtureSyncService syncService, EspnLiveScoreService liveScoreService) {
         this.syncService = syncService;
+        this.liveScoreService = liveScoreService;
     }
 
     @PostMapping("/api/admin/sync/fixtures")
     public SyncSummary syncFixtures() {
         return syncService.syncAll();
+    }
+
+    @PostMapping("/api/admin/sync/livescores")
+    public EspnLiveScoreService.PollSummary syncLiveScores() {
+        return liveScoreService.poll();
     }
 }
