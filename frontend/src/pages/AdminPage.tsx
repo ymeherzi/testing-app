@@ -14,7 +14,6 @@ export function AdminPage() {
 
   const [season, setSeason] = useState('')
   const [weekIndex, setWeekIndex] = useState(1)
-  const [type, setType] = useState<'WEEKEND' | 'MIDWEEK'>('WEEKEND')
   const [selection, setSelection] = useState<Set<number>>(new Set())
   const [targetGameweek, setTargetGameweek] = useState('')
   const [message, setMessage] = useState<string | null>(null)
@@ -37,7 +36,6 @@ export function AdminPage() {
         createGameweek.mutateAsync({
           season,
           weekIndex,
-          type,
           windowStart: new Date(now - 86_400_000).toISOString(),
           windowEnd: new Date(now + 6 * 86_400_000).toISOString(),
         }),
@@ -80,7 +78,7 @@ export function AdminPage() {
         {gameweeks?.map((gw) => (
           <div key={gw.id} className="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 text-sm">
             <span className="flex-1">
-              #{gw.id} · {gw.season} GW{gw.weekIndex} · {gw.type} · {gw.fixtures.length} fixtures
+              #{gw.id} · {gw.season} GW{gw.weekIndex} · {gw.fixtures.length} fixtures
             </span>
             <span
               className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
@@ -113,10 +111,6 @@ export function AdminPage() {
                  onChange={(e) => setSeason(e.target.value)} className={`${inputClass} w-36`} />
           <input type="number" required min={1} value={weekIndex}
                  onChange={(e) => setWeekIndex(Number(e.target.value))} className={`${inputClass} w-20`} />
-          <select value={type} onChange={(e) => setType(e.target.value as 'WEEKEND' | 'MIDWEEK')} className={inputClass}>
-            <option value="WEEKEND">Weekend</option>
-            <option value="MIDWEEK">Midweek</option>
-          </select>
           <button type="submit" className="rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-emerald-950">
             Create
           </button>

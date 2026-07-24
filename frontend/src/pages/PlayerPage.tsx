@@ -111,7 +111,8 @@ export function PlayerPage() {
             {view.hiddenCount > 0 && <span> · {view.hiddenCount} pick{view.hiddenCount > 1 ? 's' : ''} still hidden</span>}
           </p>
         </div>
-        <GameweekPicker history={history} value={gameweekId} onChange={setGameweekId} showPoints={false} />
+        <GameweekPicker history={history} value={gameweekId ?? view.gameweekId} onChange={setGameweekId}
+                        showPoints={false} />
       </header>
 
       {[...groups.entries()].map(([day, fixtures]) => (

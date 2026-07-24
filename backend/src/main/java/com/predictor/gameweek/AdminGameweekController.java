@@ -38,12 +38,23 @@ public class AdminGameweekController {
         this.clock = clock;
     }
 
+    /**
+     * Gameweeks are identified by number; the weekend/midweek type is a
+     * legacy scheduling hint that is no longer surfaced to players and may
+     * be omitted (defaults to WEEKEND).
+     */
     public record CreateGameweekRequest(
             @NotBlank String season,
             @Min(1) int weekIndex,
-            @NotNull Gameweek.Type type,
+            Gameweek.Type type,
             @NotNull Instant windowStart,
             @NotNull Instant windowEnd) {
+
+        public CreateGameweekRequest {
+            if (type == null) {
+                type = Gameweek.Type.WEEKEND;
+            }
+        }
     }
 
     public record SetFixturesRequest(@NotEmpty List<Long> matchIds) {

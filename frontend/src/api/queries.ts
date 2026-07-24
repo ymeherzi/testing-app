@@ -165,7 +165,6 @@ export function useAdminActions() {
     mutationFn: (input: {
       season: string
       weekIndex: number
-      type: 'WEEKEND' | 'MIDWEEK'
       windowStart: string
       windowEnd: string
     }) => api<GameweekView>('/api/admin/gameweeks', { method: 'POST', body: JSON.stringify(input) }),

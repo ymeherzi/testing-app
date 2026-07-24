@@ -50,14 +50,19 @@ intentional.
 
 ## 3. Gameweeks
 
-- A **gameweek (GW)** is a curated set of fixtures with an identity, a type,
-  and a window.
-- **Two cadences:** weekend gameweeks (the staple) and separate **midweek
-  gameweeks** (European nights, midweek league rounds).
-- Sizes will naturally differ (guideline: ~10 fixtures weekend, ~4–6 midweek).
-  This is fair within a GW — everyone predicts the same fixtures — and leagues
-  can opt out of midweek GWs entirely (league setting: *plays weekend only* /
-  *plays all gameweeks*).
+- A **gameweek (GW)** is a curated set of fixtures with a number and a window.
+- **Gameweeks are identified by number only** — GW1, GW2, GW3 … There is no
+  weekend/midweek label anywhere in the product. *(Revised 2026-07: the
+  original design split gameweeks into weekend and midweek cadences. In
+  practice a gameweek is simply "the next batch of curated fixtures", which
+  may fall on any days — labelling one "Weekend" is wrong as often as it is
+  right, and players think in numbers. The `type` column survives in the
+  schema as an unused legacy hint, defaulted and never displayed.)*
+- Gameweeks may run at any cadence and vary in size; fairness holds within a
+  gameweek because everyone predicts the same fixtures.
+- Consequence: the parked "leagues can skip midweek gameweeks" setting is
+  dropped. If per-league gameweek opt-outs are ever wanted, they should be
+  expressed over fixture dates or explicit gameweek selection, not a type.
 - The season is the European club season (Aug–May).
 
 ## 4. Fixture sources
@@ -209,7 +214,7 @@ Users join three public leagues automatically at enrollment:
 | 1 | Draw predicted, wrong scoreline | 1 point (outcome tier; no 2-pt tier for draws) |
 | 2 | Private-league fixtures | Preset source + admin override with auto-fallback at cutoff |
 | 3 | Prediction deadlines | Per-match lock at kickoff |
-| 4 | Gameweek structure | Weekend GWs + separate midweek GWs; per-league opt-out of midweek |
+| 4 | Gameweek structure | ~~Weekend GWs + separate midweek GWs; per-league opt-out of midweek~~ → **revised 2026-07**: gameweeks are numbered only, any cadence, no weekend/midweek label (see §3) |
 | 5 | H2H format | Pure FPL round-robin, 3/1/0, average for odd counts, tiebreak on total points |
 | 6 | Data source | football-data.org free tier behind a provider adapter |
 | 7 | Platform | Mobile-first PWA with web push, email fallback |

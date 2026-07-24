@@ -47,7 +47,7 @@ export function PredictPage() {
           <h1 className="text-xl font-bold">
             Gameweek {gameweek.weekIndex}
             <span className="ml-2 align-middle text-xs font-medium uppercase tracking-wide text-slate-400">
-              {gameweek.type === 'MIDWEEK' ? 'Midweek' : 'Weekend'} · {gameweek.season}
+              {gameweek.season}
             </span>
           </h1>
           <p className="mt-1 text-sm text-slate-400">
@@ -55,7 +55,7 @@ export function PredictPage() {
             {gameweek.status === 'SCORED' && <span className="ml-2 text-emerald-400">· {myPoints} pts</span>}
           </p>
         </div>
-        <GameweekPicker history={history} value={selectedGameweek} onChange={setSelectedGameweek} />
+        <GameweekPicker history={history} value={selectedGameweek ?? gameweek.id} onChange={setSelectedGameweek} />
       </header>
 
       {[...groups.entries()].map(([day, fixtures]) => (
