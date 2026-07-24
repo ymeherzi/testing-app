@@ -121,7 +121,7 @@ class PlayerPredictionsIT {
         predictionService.upsert(rival.getId(), gameweekId, openFixtureId, 3, 0);
 
         JsonNode view = objectMapper.readTree(mockMvc.perform(
-                        get("/api/gameweeks/%d/players/%d".formatted(gameweekId, rival.getId()))
+                        get("/api/gameweeks/%d/players/%s".formatted(gameweekId, rival.getPublicId()))
                                 .header("Authorization", "Bearer " + viewerToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.displayName").value("peek-rival"))
@@ -145,7 +145,7 @@ class PlayerPredictionsIT {
         });
 
         JsonNode after = objectMapper.readTree(mockMvc.perform(
-                        get("/api/gameweeks/%d/players/%d".formatted(gameweekId, rival.getId()))
+                        get("/api/gameweeks/%d/players/%s".formatted(gameweekId, rival.getPublicId()))
                                 .header("Authorization", "Bearer " + viewerToken))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString());
@@ -162,9 +162,9 @@ class PlayerPredictionsIT {
 
     @Test
     void unauthenticatedAccessIsRejectedAndUnknownPlayerIs404() throws Exception {
-        mockMvc.perform(get("/api/gameweeks/%d/players/%d".formatted(gameweekId, rival.getId())))
+        mockMvc.perform(get("/api/gameweeks/%d/players/%s".formatted(gameweekId, rival.getPublicId())))
                 .andExpect(status().isUnauthorized());
-        mockMvc.perform(get("/api/gameweeks/%d/players/999999".formatted(gameweekId))
+        mockMvc.perform(get("/api/gameweeks/%d/players/%s".formatted(gameweekId, java.util.UUID.randomUUID()))
                         .header("Authorization", "Bearer " + viewerToken))
                 .andExpect(status().isNotFound());
     }

@@ -139,8 +139,8 @@ class LeagueJoinWindowIT {
         scoreFixture(fixtureGw2, 1, 0); // both exact again → +3 globally each
 
         var table = tableService.leagueMembersTable(league.id());
-        var aliceRow = table.stream().filter(e -> e.userId() == alice.getId()).findFirst().orElseThrow();
-        var bobRow = table.stream().filter(e -> e.userId() == bob.getId()).findFirst().orElseThrow();
+        var aliceRow = table.stream().filter(e -> e.userId().equals(alice.getPublicId())).findFirst().orElseThrow();
+        var bobRow = table.stream().filter(e -> e.userId().equals(bob.getPublicId())).findFirst().orElseThrow();
         assertThat(aliceRow.points()).isEqualTo(6); // GW1 + GW2
         assertThat(bobRow.points()).isEqualTo(3);   // GW2 only — pre-join points excluded
         assertThat(aliceRow.rank()).isEqualTo(1);

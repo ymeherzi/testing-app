@@ -24,11 +24,11 @@ public final class AuthDtos {
             @NotBlank String password) {
     }
 
-    public record UserResponse(Long id, String email, String displayName, String country,
+    public record UserResponse(java.util.UUID id, String email, String displayName, String country,
                                Long favouriteClubTeamId, boolean admin) {
 
         public static UserResponse from(User user) {
-            return new UserResponse(user.getId(), user.getEmail(), user.getDisplayName(),
+            return new UserResponse(user.getPublicId(), user.getEmail(), user.getDisplayName(),
                     user.getCountry(), user.getFavouriteClubTeamId(), user.isAdmin());
         }
     }

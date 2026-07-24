@@ -5,7 +5,7 @@ import { useT } from '../i18n'
 
 export interface TableRow {
   rank: number
-  userId: number
+  userId: string
   displayName: string
   country: string | null
   points: number

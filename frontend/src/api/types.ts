@@ -1,5 +1,6 @@
 export interface UserProfile {
-  id: number
+  /** public, unguessable id — sequential ids never leave the server */
+  id: string
   email: string
   displayName: string
   country: string | null
@@ -63,7 +64,7 @@ export interface MatchView {
 
 export interface TableEntry {
   rank: number
-  userId: number
+  userId: string
   displayName: string
   country: string | null
   points: number
@@ -92,7 +93,7 @@ export interface GameweekSummary {
 }
 
 export interface PlayerGameweekView {
-  playerId: number
+  playerId: string
   displayName: string
   country: string | null
   gameweekId: number
@@ -115,7 +116,7 @@ export interface ScopedTable {
 
 export interface MemberEntry {
   rank: number
-  userId: number
+  userId: string
   displayName: string
   country: string | null
   points: number

@@ -98,12 +98,13 @@ public class GameweekService {
      * fixture is returned with a null prediction.
      */
     @Transactional(readOnly = true)
-    public PlayerGameweekView playerView(long gameweekId, long playerId) {
+    public PlayerGameweekView playerView(long gameweekId, java.util.UUID publicPlayerId) {
         Gameweek gameweek = gameweeks.findById(gameweekId)
                 .filter(gw -> gw.getStatus() != Gameweek.Status.DRAFT)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Gameweek not found"));
-        User player = users.findById(playerId)
+        User player = users.findByPublicId(publicPlayerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Player not found"));
+        long playerId = player.getId();
         Map<Long, Prediction> theirs = predictions
                 .findByUserIdAndGameweekFixtureGameweekId(playerId, gameweekId).stream()
                 .collect(Collectors.toMap(p -> p.getGameweekFixture().getId(), Function.identity()));
@@ -128,7 +129,7 @@ public class GameweekService {
                 }
             }
         }
-        return new PlayerGameweekView(player.getId(), player.getDisplayName(), player.getCountry(),
+        return new PlayerGameweekView(player.getPublicId(), player.getDisplayName(), player.getCountry(),
                 gameweek.getId(), gameweek.getWeekIndex(), gameweek.getSeason(),
                 points, revealed, hidden, views);
     }

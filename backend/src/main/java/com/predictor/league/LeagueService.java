@@ -22,15 +22,18 @@ public class LeagueService {
 
     private final LeagueRepository leagues;
     private final LeagueMemberRepository members;
+    private final com.predictor.user.UserRepository users;
     private final GameweekRepository gameweeks;
     private final LeagueTableService tableService;
     private final Clock clock;
     private final SecureRandom random = new SecureRandom();
 
     public LeagueService(LeagueRepository leagues, LeagueMemberRepository members,
+                         com.predictor.user.UserRepository users,
                          GameweekRepository gameweeks, LeagueTableService tableService, Clock clock) {
         this.leagues = leagues;
         this.members = members;
+        this.users = users;
         this.gameweeks = gameweeks;
         this.tableService = tableService;
         this.clock = clock;
@@ -77,11 +80,12 @@ public class LeagueService {
 
     @Transactional(readOnly = true)
     public List<LeagueSummary> myLeagues(long userId) {
+        java.util.UUID publicId = publicIdOf(userId);
         List<LeagueSummary> summaries = new ArrayList<>();
         for (LeagueMember membership : members.findByUserIdOrderByJoinedAtAsc(userId)) {
             League league = membership.getLeague();
             List<MemberEntry> table = tableService.leagueMembersTable(league.getId());
-            MemberEntry me = table.stream().filter(e -> e.userId() == userId).findFirst().orElse(null);
+            MemberEntry me = table.stream().filter(e -> e.userId().equals(publicId)).findFirst().orElse(null);
             summaries.add(new LeagueSummary(league.getId(), league.getName(), league.getInviteCode(),
                     league.getAdminUserId().equals(userId), table.size(),
                     me == null ? null : me.rank(), me == null ? 0 : me.points()));
@@ -97,7 +101,8 @@ public class LeagueService {
         }
         League league = leagues.findById(leagueId).orElseThrow();
         List<MemberEntry> table = tableService.leagueMembersTable(leagueId);
-        MemberEntry me = table.stream().filter(e -> e.userId() == userId).findFirst().orElse(null);
+        java.util.UUID publicId = publicIdOf(userId);
+        MemberEntry me = table.stream().filter(e -> e.userId().equals(publicId)).findFirst().orElse(null);
         return new LeagueDetail(league.getId(), league.getName(), league.getInviteCode(),
                 league.getAdminUserId().equals(userId), league.getMaxMembers(), table, me);
     }
@@ -113,6 +118,10 @@ public class LeagueService {
         }
         league.setInviteCode(uniqueCode());
         return detail(userId, leagueId);
+    }
+
+    private java.util.UUID publicIdOf(long userId) {
+        return users.findById(userId).orElseThrow().getPublicId();
     }
 
     private Long resolveJoinGameweekId(Instant now) {

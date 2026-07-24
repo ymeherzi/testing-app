@@ -38,7 +38,7 @@ export function useGameweekHistory() {
   })
 }
 
-export function usePlayerGameweek(gameweekId: number | null, playerId: number) {
+export function usePlayerGameweek(gameweekId: number | null, playerId: string | undefined) {
   return useQuery({
     queryKey: ['gameweek', 'player', gameweekId ?? 'current', playerId],
     queryFn: () =>
@@ -47,7 +47,7 @@ export function usePlayerGameweek(gameweekId: number | null, playerId: number) {
           ? `/api/gameweeks/${gameweekId}/players/${playerId}`
           : `/api/gameweeks/current/players/${playerId}`,
       ),
-    enabled: playerId > 0,
+    enabled: Boolean(playerId),
     refetchInterval: 30_000,
   })
 }

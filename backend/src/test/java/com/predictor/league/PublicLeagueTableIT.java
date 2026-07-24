@@ -83,7 +83,7 @@ class PublicLeagueTableIT {
             previousRank = entry.get("rank").asLong();
         }
         assertThat(scoped.get("table").get("entries").size()).isGreaterThanOrEqualTo(2);
-        assertThat(scoped.get("table").get("me").get("userId").asLong()).isPositive();
+        assertThat(scoped.get("table").get("me").get("userId").asText()).isNotBlank();
     }
 
     @Test

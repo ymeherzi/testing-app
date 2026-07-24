@@ -20,7 +20,7 @@ public class LeagueTableService {
         this.jdbc = jdbc;
     }
 
-    public record Entry(long rank, long userId, String displayName, String country,
+    public record Entry(long rank, java.util.UUID userId, String displayName, String country,
                         long points, long scoredPredictions) {
     }
 
@@ -36,19 +36,19 @@ public class LeagueTableService {
         }
     }
 
-    public record MemberEntry(long rank, long userId, String displayName, String country,
+    public record MemberEntry(long rank, java.util.UUID userId, String displayName, String country,
                               long points, long scoredPredictions, boolean admin) {
     }
 
     private static final String TOTALS_FILTERED = """
-            select u.id, u.display_name, u.country,
+            select u.id, u.public_id, u.display_name, u.country,
                    coalesce(sum(p.points), 0) as points,
                    count(p.points) as scored,
                    rank() over (order by coalesce(sum(p.points), 0) desc) as rnk
             from users u
             left join predictions p on p.user_id = u.id
             %s
-            group by u.id, u.display_name, u.country
+            group by u.id, u.public_id, u.display_name, u.country
             """;
 
     public Table globalTable(long currentUserId, int page, int size) {
@@ -111,7 +111,7 @@ public class LeagueTableService {
      */
     public List<MemberEntry> leagueMembersTable(long leagueId) {
         return jdbc.sql("""
-                        select u.id, u.display_name, u.country,
+                        select u.id, u.public_id, u.display_name, u.country,
                                (m.user_id = l.admin_user_id) as is_admin,
                                coalesce(sum(sp.points), 0) as points,
                                count(sp.points) as scored,
@@ -128,18 +128,18 @@ public class LeagueTableService {
                         ) sp on sp.user_id = u.id
                            and (m.join_gameweek_id is null or sp.window_start >= jgw.window_start)
                         where m.league_id = :leagueId
-                        group by u.id, u.display_name, u.country, m.user_id, l.admin_user_id
+                        group by u.id, u.public_id, u.display_name, u.country, m.user_id, l.admin_user_id
                         order by rnk, lower(u.display_name)
                         """)
                 .param("leagueId", leagueId)
-                .query((rs, i) -> new MemberEntry(rs.getLong("rnk"), rs.getLong("id"),
+                .query((rs, i) -> new MemberEntry(rs.getLong("rnk"), rs.getObject("public_id", java.util.UUID.class),
                         rs.getString("display_name"), rs.getString("country"),
                         rs.getLong("points"), rs.getLong("scored"), rs.getBoolean("is_admin")))
                 .list();
     }
 
     private Entry mapEntry(java.sql.ResultSet rs, int rowNum) throws java.sql.SQLException {
-        return new Entry(rs.getLong("rnk"), rs.getLong("id"), rs.getString("display_name"),
+        return new Entry(rs.getLong("rnk"), rs.getObject("public_id", java.util.UUID.class), rs.getString("display_name"),
                 rs.getString("country"), rs.getLong("points"), rs.getLong("scored"));
     }
 }

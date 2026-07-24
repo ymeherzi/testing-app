@@ -7,5 +7,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmailIgnoreCase(String email);
 
+    Optional<User> findByPublicId(java.util.UUID publicId);
+
     boolean existsByEmailIgnoreCase(String email);
 }

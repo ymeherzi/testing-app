@@ -189,7 +189,7 @@ class ScoringFlowIT {
                                 .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString());
-        assertThat(table.get("me").get("userId").asLong()).isEqualTo(drawUser.getId());
+        assertThat(table.get("me").get("userId").asText()).isEqualTo(drawUser.getPublicId().toString());
         assertThat(table.get("me").get("points").asInt()).isEqualTo(1);
         long previous = Long.MAX_VALUE;
         for (JsonNode entry : table.get("entries")) {

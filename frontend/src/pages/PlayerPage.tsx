@@ -81,7 +81,7 @@ export function PlayerPage() {
     searchParams.get('gw') ? Number(searchParams.get('gw')) : null,
   )
   const { data: history } = useGameweekHistory()
-  const { data: view, isPending, error } = usePlayerGameweek(gameweekId, Number(playerId))
+  const { data: view, isPending, error } = usePlayerGameweek(gameweekId, playerId)
 
   if (isPending) {
     return <p className="p-6 text-center text-slate-400">{t('common.loading')}</p>

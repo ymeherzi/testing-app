@@ -36,14 +36,14 @@ public class GameweekController {
     }
 
     /** Another player's picks for this gameweek (locked matches only). */
-    @GetMapping("/{id:\\d+}/players/{playerId:\\d+}")
-    public PlayerGameweekView player(@PathVariable long id, @PathVariable long playerId) {
+    @GetMapping("/{id:\\d+}/players/{playerId}")
+    public PlayerGameweekView player(@PathVariable long id, @PathVariable java.util.UUID playerId) {
         return gameweekService.playerView(id, playerId);
     }
 
     /** Convenience for the current gameweek. */
-    @GetMapping("/current/players/{playerId:\\d+}")
-    public PlayerGameweekView playerCurrent(@PathVariable long playerId, Authentication authentication) {
+    @GetMapping("/current/players/{playerId}")
+    public PlayerGameweekView playerCurrent(@PathVariable java.util.UUID playerId, Authentication authentication) {
         long gameweekId = gameweekService.currentForUser(CurrentUser.id(authentication)).id();
         return gameweekService.playerView(gameweekId, playerId);
     }

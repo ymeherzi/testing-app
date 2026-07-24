@@ -63,7 +63,7 @@ public final class GameweekDtos {
     }
 
     /** Another player's gameweek: picks are revealed only once a match locks. */
-    public record PlayerGameweekView(Long playerId, String displayName, String country,
+    public record PlayerGameweekView(java.util.UUID playerId, String displayName, String country,
                                      Long gameweekId, int weekIndex, String season,
                                      long points, int revealedCount, int hiddenCount,
                                      List<FixtureView> fixtures) {
