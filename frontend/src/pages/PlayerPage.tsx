@@ -5,10 +5,12 @@ import type { FixtureView } from '../api/types'
 import { GameweekPicker } from '../components/GameweekPicker'
 import { TeamBadge } from '../components/TeamBadge'
 import { useAuth } from '../auth/AuthContext'
-import { countryFlag, kickoffDayLabel, kickoffTimeLabel, pointsLabel } from '../lib/format'
+import { countryFlag, kickoffDayLabel, kickoffTimeLabel, pointsLabelKey } from '../lib/format'
+import { useT } from '../i18n'
 import { score } from '../lib/scoring'
 
 function PredictionRow({ fixture }: { fixture: FixtureView }) {
+  const t = useT()
   const prediction = fixture.prediction
   const points = prediction?.points ?? null
   const onCourse =
@@ -37,11 +39,11 @@ function PredictionRow({ fixture }: { fixture: FixtureView }) {
       </div>
       <footer className="mt-2 flex items-center justify-center gap-2 text-xs">
         {!fixture.locked ? (
-          <span className="text-slate-500">🔒 pick hidden until kickoff</span>
+          <span className="text-slate-500">{t('match.hiddenUntilKickoff')}</span>
         ) : prediction ? (
           <>
             <span className="rounded-full bg-slate-800 px-2 py-0.5 font-semibold text-slate-200">
-              picked {prediction.homeGoals}-{prediction.awayGoals}
+              {t('match.picked', { home: prediction.homeGoals, away: prediction.awayGoals })}
             </span>
             {points != null ? (
               <span
@@ -53,16 +55,16 @@ function PredictionRow({ fixture }: { fixture: FixtureView }) {
                       : 'bg-slate-700/60 text-slate-400'
                 }`}
               >
-                {points} pts · {pointsLabel(points)}
+                {t('common.points', { count: points })} · {t(pointsLabelKey(points))}
               </span>
             ) : onCourse != null ? (
               <span className="rounded-full bg-amber-500/15 px-2 py-0.5 font-semibold text-amber-300">
-                on course for {onCourse} pts
+                {t('match.onCourse', { count: onCourse })}
               </span>
             ) : null}
           </>
         ) : (
-          <span className="text-slate-500">no prediction</span>
+          <span className="text-slate-500">{t('match.noPrediction')}</span>
         )}
       </footer>
     </article>
@@ -70,6 +72,7 @@ function PredictionRow({ fixture }: { fixture: FixtureView }) {
 }
 
 export function PlayerPage() {
+  const t = useT()
   const { playerId } = useParams()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -81,10 +84,10 @@ export function PlayerPage() {
   const { data: view, isPending, error } = usePlayerGameweek(gameweekId, Number(playerId))
 
   if (isPending) {
-    return <p className="p-6 text-center text-slate-400">Loading…</p>
+    return <p className="p-6 text-center text-slate-400">{t('common.loading')}</p>
   }
   if (error || !view) {
-    return <p className="p-6 text-center text-slate-400">Player not found.</p>
+    return <p className="p-6 text-center text-slate-400">{t('player.notFound')}</p>
   }
 
   const isMe = view.playerId === user?.id
@@ -97,18 +100,19 @@ export function PlayerPage() {
   return (
     <div className="space-y-4 p-4">
       <button type="button" onClick={() => navigate(-1)} className="text-sm text-slate-400">
-        ‹ Back
+        {t('nav.back')}
       </button>
 
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h1 className="truncate text-xl font-bold">
             {countryFlag(view.country)} {view.displayName}
-            {isMe && <span className="ml-1 text-sm font-normal text-slate-400">(you)</span>}
+            {isMe && <span className="ml-1 text-sm font-normal text-slate-400">{t('common.you')}</span>}
           </h1>
           <p className="mt-1 text-sm text-slate-400">
-            GW{view.weekIndex} · {view.season} · <span className="font-semibold text-emerald-400">{view.points} pts</span>
-            {view.hiddenCount > 0 && <span> · {view.hiddenCount} pick{view.hiddenCount > 1 ? 's' : ''} still hidden</span>}
+            {t('predict.gameweekLabel', { index: view.weekIndex })} · {view.season} ·{' '}
+            <span className="font-semibold text-emerald-400">{t('common.points', { count: view.points })}</span>
+            {view.hiddenCount > 0 && <span> · {t('player.hiddenPicks', { count: view.hiddenCount })}</span>}
           </p>
         </div>
         <GameweekPicker history={history} value={gameweekId ?? view.gameweekId} onChange={setGameweekId}

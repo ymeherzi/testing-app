@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { useT } from '../i18n'
 
 export function LoginPage() {
   const { login } = useAuth()
+  const t = useT()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -18,7 +20,7 @@ export function LoginPage() {
       await login(email, password)
       navigate('/')
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Login failed')
+      setError(e instanceof Error ? e.message : t('auth.loginFailed'))
     } finally {
       setBusy(false)
     }
@@ -26,13 +28,13 @@ export function LoginPage() {
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center bg-slate-950 p-6 text-slate-100">
-      <h1 className="mb-1 text-center text-3xl font-extrabold">⚽ Predictor</h1>
-      <p className="mb-8 text-center text-sm text-slate-400">Call the scores. Top the table.</p>
+      <h1 className="mb-1 text-center text-3xl font-extrabold">⚽ {t('app.name')}</h1>
+      <p className="mb-8 text-center text-sm text-slate-400">{t('app.tagline')}</p>
       <form onSubmit={submit} className="space-y-4">
         <input
           type="email"
           required
-          placeholder="Email"
+          placeholder={t('auth.email')}
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -41,7 +43,7 @@ export function LoginPage() {
         <input
           type="password"
           required
-          placeholder="Password"
+          placeholder={t('auth.password')}
           autoComplete="current-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -53,13 +55,13 @@ export function LoginPage() {
           disabled={busy}
           className="w-full rounded-xl bg-emerald-500 py-3 font-semibold text-emerald-950 active:bg-emerald-400 disabled:opacity-50"
         >
-          {busy ? 'Signing in…' : 'Sign in'}
+          {busy ? t('auth.signingIn') : t('auth.signIn')}
         </button>
       </form>
       <p className="mt-6 text-center text-sm text-slate-400">
-        New here?{' '}
+        {t('auth.newHere')}{' '}
         <Link to="/signup" className="font-medium text-emerald-400">
-          Create an account
+          {t('auth.createAccount')}
         </Link>
       </p>
     </div>

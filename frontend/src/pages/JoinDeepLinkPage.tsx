@@ -4,6 +4,7 @@ import { useLeagueActions } from '../api/queries'
 import { ApiError } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
 import { stashPendingInvite } from '../lib/invite'
+import { useT } from '../i18n'
 
 /**
  * Shareable invite link target (/join/CODE). Authenticated users join
@@ -11,6 +12,7 @@ import { stashPendingInvite } from '../lib/invite'
  * PendingInviteHandler completes the join once they're in.
  */
 export function JoinDeepLinkPage() {
+  const t = useT()
   const { code } = useParams()
   const { user } = useAuth()
   const { join } = useLeagueActions()
@@ -40,5 +42,5 @@ export function JoinDeepLinkPage() {
       })
   }, [code, user, join, navigate])
 
-  return <p className="p-8 text-center text-slate-400">Joining league…</p>
+  return <p className="p-8 text-center text-slate-400">{t('joinLeague.joining')}</p>
 }

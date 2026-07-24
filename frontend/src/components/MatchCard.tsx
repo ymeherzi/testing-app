@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FixtureView } from '../api/types'
-import { countdown, kickoffTimeLabel, pointsLabel } from '../lib/format'
+import { countdown, kickoffTimeLabel, pointsLabelKey } from '../lib/format'
+import { useT } from '../i18n'
 import { score } from '../lib/scoring'
 import { ScoreStepper } from './ScoreStepper'
 import { TeamBadge } from './TeamBadge'
@@ -12,23 +13,26 @@ interface Props {
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'error'
 
-function statusBadge(fixture: FixtureView): string | null {
+type Badge = 'live' | 'ft' | 'off'
+
+function statusBadge(fixture: FixtureView): Badge | null {
   switch (fixture.matchStatus) {
     case 'IN_PLAY':
     case 'PAUSED':
-      return 'LIVE'
+      return 'live'
     case 'FINISHED':
     case 'AWARDED':
-      return 'FT'
+      return 'ft'
     case 'POSTPONED':
     case 'CANCELLED':
-      return 'OFF'
+      return 'off'
     default:
       return null
   }
 }
 
 export function MatchCard({ fixture, onSave }: Props) {
+  const t = useT()
   const [homeGoals, setHomeGoals] = useState(fixture.prediction?.homeGoals ?? 0)
   const [awayGoals, setAwayGoals] = useState(fixture.prediction?.awayGoals ?? 0)
   const [touched, setTouched] = useState(fixture.prediction != null)
@@ -75,17 +79,17 @@ export function MatchCard({ fixture, onSave }: Props) {
         {badge ? (
           <span
             className={`rounded-full px-2 py-0.5 font-semibold ${
-              badge === 'LIVE' ? 'bg-red-500/20 text-red-400' : 'bg-slate-700/60 text-slate-300'
+              badge === 'live' ? 'bg-red-500/20 text-red-400' : 'bg-slate-700/60 text-slate-300'
             }`}
           >
-            {badge}
+            {t(`match.${badge === 'live' ? 'live' : badge === 'ft' ? 'fullTime' : 'off'}`)}
           </span>
         ) : fixture.locked ? (
-          <span className="text-slate-400">awaiting result ⏳</span>
+          <span className="text-slate-400">{t('match.awaitingResult')}</span>
         ) : (
           <span>
             {kickoffTimeLabel(fixture.kickoffUtc)}
-            {remaining && <span className="ml-2 text-emerald-400">locks in {remaining}</span>}
+            {remaining && <span className="ml-2 text-emerald-400">{t('match.locksIn', { time: remaining })}</span>}
           </span>
         )}
       </header>
@@ -104,7 +108,7 @@ export function MatchCard({ fixture, onSave }: Props) {
               </span>
               {fixture.prediction && (
                 <span className="text-xs text-slate-400">
-                  you: {fixture.prediction.homeGoals}-{fixture.prediction.awayGoals}
+                  {t('match.you', { home: fixture.prediction.homeGoals, away: fixture.prediction.awayGoals })}
                 </span>
               )}
             </div>
@@ -117,7 +121,7 @@ export function MatchCard({ fixture, onSave }: Props) {
                   : '– : –'}
               </span>
               <span className="text-xs text-slate-400">
-                {fixture.prediction ? 'your call' : 'no prediction'}
+                {t(fixture.prediction ? 'match.yourCall' : 'match.noPrediction')}
               </span>
             </div>
           )
@@ -146,20 +150,20 @@ export function MatchCard({ fixture, onSave }: Props) {
                   : 'bg-slate-700/60 text-slate-400'
             }`}
           >
-            {points} pts · {pointsLabel(points)}
+            {t('common.points', { count: points })} · {t(pointsLabelKey(points))}
           </span>
         ) : onCourse != null ? (
           <span className="rounded-full bg-amber-500/15 px-2 py-0.5 font-semibold text-amber-300">
-            on course for {onCourse} pts
+            {t('match.onCourse', { count: onCourse })}
           </span>
         ) : fixture.locked ? null : !touched ? (
-          <span className="text-slate-500">set your score</span>
+          <span className="text-slate-500">{t('match.setYourScore')}</span>
         ) : saveState === 'saving' ? (
-          <span className="text-slate-400">saving…</span>
+          <span className="text-slate-400">{t('common.saving')}</span>
         ) : saveState === 'error' ? (
-          <span className="text-red-400">couldn't save — try again</span>
+          <span className="text-red-400">{t('match.saveFailed')}</span>
         ) : (
-          <span className="text-emerald-400">saved ✓</span>
+          <span className="text-emerald-400">{t('match.saved')}</span>
         )}
       </footer>
     </article>

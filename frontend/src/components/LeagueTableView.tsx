@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { countryFlag } from '../lib/format'
+import { useT } from '../i18n'
 
 export interface TableRow {
   rank: number
@@ -20,6 +21,7 @@ interface Props {
 /** Shared ranked-standings list used by all league kinds. */
 export function LeagueTableView({ rows, me }: Props) {
   const { user } = useAuth()
+  const t = useT()
   const meVisible = rows.some((row) => row.userId === user?.id)
 
   const row = (entry: TableRow, highlight: boolean, suffix = '') => (
@@ -29,10 +31,10 @@ export function LeagueTableView({ rows, me }: Props) {
         <span aria-hidden>{countryFlag(entry.country) || '·'}</span>
         <span className="min-w-0 flex-1 truncate text-sm font-medium">
           {entry.displayName}
-          {suffix && <span className="text-slate-400"> (you)</span>}
+          {suffix && <span className="text-slate-400"> {t('common.you')}</span>}
           {entry.admin && <span className="ml-1 text-xs text-amber-400" title="League admin">★</span>}
         </span>
-        <span className="text-xs text-slate-500">{entry.scoredPredictions} scored</span>
+        <span className="text-xs text-slate-500">{t('leagues.scored', { count: entry.scoredPredictions })}</span>
         <span className="w-10 text-right text-base font-bold tabular-nums text-emerald-400">{entry.points}</span>
         <span className="text-slate-600">›</span>
       </Link>

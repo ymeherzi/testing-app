@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { countdown, countryFlag, pointsLabel } from './format'
+import { countdown, countryFlag, pointsLabelKey } from './format'
 
 describe('countdown', () => {
   const now = new Date('2026-07-01T12:00:00Z')
@@ -16,12 +16,12 @@ describe('countdown', () => {
   })
 })
 
-describe('pointsLabel', () => {
-  it('labels every tier', () => {
-    expect(pointsLabel(3)).toBe('Exact score')
-    expect(pointsLabel(2)).toBe('Right margin')
-    expect(pointsLabel(1)).toBe('Right call')
-    expect(pointsLabel(0)).toBe('Missed')
+describe('pointsLabelKey', () => {
+  it('maps every tier to its message key', () => {
+    expect(pointsLabelKey(3)).toBe('points.exact')
+    expect(pointsLabelKey(2)).toBe('points.margin')
+    expect(pointsLabelKey(1)).toBe('points.outcome')
+    expect(pointsLabelKey(0)).toBe('points.missed')
   })
 })
 

@@ -1,8 +1,10 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useLeagueActions } from '../api/queries'
+import { useT } from '../i18n'
 
 export function CreateLeaguePage() {
+  const t = useT()
   const { create } = useLeagueActions()
   const navigate = useNavigate()
   const [name, setName] = useState('')
@@ -15,17 +17,17 @@ export function CreateLeaguePage() {
       const league = await create.mutateAsync({ name })
       navigate(`/table/league/${league.id}`)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not create the league')
+      setError(e instanceof Error ? e.message : t('createLeague.failed'))
     }
   }
 
   return (
     <div className="space-y-6 p-4">
-      <Link to="/table" className="text-sm text-slate-400">‹ Leagues</Link>
+      <Link to="/table" className="text-sm text-slate-400">{t('nav.backToLeagues')}</Link>
       <header>
-        <h1 className="text-xl font-bold">Create a league</h1>
+        <h1 className="text-xl font-bold">{t('createLeague.title')}</h1>
         <p className="mt-1 text-sm text-slate-400">
-          You'll get an invite link to share — friends who join compete from the current gameweek onward.
+          {t('createLeague.subtitle')}
         </p>
       </header>
       <form onSubmit={submit} className="space-y-4">
@@ -34,7 +36,7 @@ export function CreateLeaguePage() {
           required
           minLength={3}
           maxLength={60}
-          placeholder="League name (e.g. Office Legends)"
+          placeholder={t('createLeague.namePlaceholder')}
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 outline-none focus:border-emerald-500"
@@ -45,7 +47,7 @@ export function CreateLeaguePage() {
           disabled={create.isPending}
           className="w-full rounded-xl bg-emerald-500 py-3 font-semibold text-emerald-950 active:bg-emerald-400 disabled:opacity-50"
         >
-          {create.isPending ? 'Creating…' : 'Create league'}
+          {create.isPending ? t('createLeague.pending') : t('createLeague.submit')}
         </button>
       </form>
     </div>

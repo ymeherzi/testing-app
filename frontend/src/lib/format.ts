@@ -1,3 +1,6 @@
+import { currentLocale } from '../i18n'
+import type { MessageKey } from '../i18n/en'
+
 /** Human label for the time until a kickoff, e.g. "2h 05m" or "3d 4h". */
 export function countdown(kickoffIso: string, now: Date = new Date()): string | null {
   const millis = new Date(kickoffIso).getTime() - now.getTime()
@@ -18,7 +21,7 @@ export function countdown(kickoffIso: string, now: Date = new Date()): string | 
 }
 
 export function kickoffDayLabel(kickoffIso: string): string {
-  return new Date(kickoffIso).toLocaleDateString(undefined, {
+  return new Date(kickoffIso).toLocaleDateString(currentLocale(), {
     weekday: 'long',
     day: 'numeric',
     month: 'short',
@@ -26,19 +29,20 @@ export function kickoffDayLabel(kickoffIso: string): string {
 }
 
 export function kickoffTimeLabel(kickoffIso: string): string {
-  return new Date(kickoffIso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+  return new Date(kickoffIso).toLocaleTimeString(currentLocale(), { hour: '2-digit', minute: '2-digit' })
 }
 
-export function pointsLabel(points: number): string {
+/** Message key for a scoring tier, so the label follows the user's language. */
+export function pointsLabelKey(points: number): MessageKey {
   switch (points) {
     case 3:
-      return 'Exact score'
+      return 'points.exact'
     case 2:
-      return 'Right margin'
+      return 'points.margin'
     case 1:
-      return 'Right call'
+      return 'points.outcome'
     default:
-      return 'Missed'
+      return 'points.missed'
   }
 }
 

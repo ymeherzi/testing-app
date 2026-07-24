@@ -2,12 +2,14 @@ import { useState, type FormEvent } from 'react'
 import { useAdminActions, useAdminGameweeks, useAdminMatchPool } from '../api/queries'
 import type { MatchView } from '../api/types'
 import { kickoffTimeLabel, kickoffDayLabel } from '../lib/format'
+import { useT } from '../i18n'
 
 function matchLabel(match: MatchView): string {
   return `${match.homeTeam.shortName ?? match.homeTeam.name} v ${match.awayTeam.shortName ?? match.awayTeam.name}`
 }
 
 export function AdminPage() {
+  const t = useT()
   const { data: gameweeks } = useAdminGameweeks(true)
   const { data: pool } = useAdminMatchPool(true)
   const { createGameweek, setFixtures, publish, sync, simulateResult } = useAdminActions()
@@ -24,7 +26,7 @@ export function AdminPage() {
       await action()
       setMessage(success)
     } catch (e) {
-      setMessage(e instanceof Error ? e.message : 'Action failed')
+      setMessage(e instanceof Error ? e.message : t('admin.actionFailed'))
     }
   }
 
@@ -39,7 +41,7 @@ export function AdminPage() {
           windowStart: new Date(now - 86_400_000).toISOString(),
           windowEnd: new Date(now + 6 * 86_400_000).toISOString(),
         }),
-      'Draft gameweek created',
+      t('admin.created'),
     )
   }
 
@@ -61,24 +63,24 @@ export function AdminPage() {
   return (
     <div className="space-y-6 p-4">
       <header className="flex items-center justify-between pt-2">
-        <h1 className="text-xl font-bold">Gameweek admin</h1>
+        <h1 className="text-xl font-bold">{t('admin.title')}</h1>
         <button
           type="button"
-          onClick={() => run(() => sync.mutateAsync(), 'Fixtures synced')}
+          onClick={() => run(() => sync.mutateAsync(), t('admin.syncedFixtures'))}
           className="rounded-lg bg-slate-800 px-3 py-2 text-sm font-medium"
         >
-          Sync fixtures
+          {t('admin.syncFixtures')}
         </button>
       </header>
 
       {message && <p className="rounded-lg bg-slate-800/80 px-3 py-2 text-sm text-slate-200">{message}</p>}
 
       <section className="space-y-2">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Gameweeks</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">{t('admin.gameweeks')}</h2>
         {gameweeks?.map((gw) => (
           <div key={gw.id} className="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 text-sm">
             <span className="flex-1">
-              #{gw.id} · {gw.season} GW{gw.weekIndex} · {gw.fixtures.length} fixtures
+              #{gw.id} · {gw.season} GW{gw.weekIndex} · {t('admin.fixtures', { count: gw.fixtures.length })}
             </span>
             <span
               className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
@@ -94,10 +96,10 @@ export function AdminPage() {
             {gw.status === 'DRAFT' && (
               <button
                 type="button"
-                onClick={() => run(() => publish.mutateAsync(gw.id), `Gameweek ${gw.id} published`)}
+                onClick={() => run(() => publish.mutateAsync(gw.id), t('admin.published', { id: gw.id }))}
                 className="rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-emerald-950"
               >
-                Publish
+                {t('admin.publish')}
               </button>
             )}
           </div>
@@ -105,14 +107,14 @@ export function AdminPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">New draft gameweek</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">{t('admin.newGameweek')}</h2>
         <form onSubmit={create} className="flex flex-wrap items-center gap-2">
-          <input type="text" required placeholder="Season e.g. 2026-27" value={season}
+          <input type="text" required placeholder={t('admin.seasonPlaceholder')} value={season}
                  onChange={(e) => setSeason(e.target.value)} className={`${inputClass} w-36`} />
           <input type="number" required min={1} value={weekIndex}
                  onChange={(e) => setWeekIndex(Number(e.target.value))} className={`${inputClass} w-20`} />
           <button type="submit" className="rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-emerald-950">
-            Create
+            {t('admin.create')}
           </button>
         </form>
       </section>
@@ -120,11 +122,11 @@ export function AdminPage() {
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-            Fixture pool ({selection.size} selected)
+            {t('admin.fixturePool', { count: selection.size })}
           </h2>
           <div className="flex items-center gap-2">
             <select value={targetGameweek} onChange={(e) => setTargetGameweek(e.target.value)} className={inputClass}>
-              <option value="">Target GW…</option>
+              <option value="">{t('admin.targetGameweek')}</option>
               {gameweeks
                 ?.filter((gw) => gw.status === 'DRAFT')
                 .map((gw) => (
@@ -139,12 +141,12 @@ export function AdminPage() {
               onClick={() =>
                 run(
                   () => setFixtures.mutateAsync({ gameweekId: Number(targetGameweek), matchIds: [...selection] }),
-                  'Fixtures set',
+                  t('admin.assigned'),
                 )
               }
               className="rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-emerald-950 disabled:opacity-30"
             >
-              Assign
+              {t('admin.assign')}
             </button>
           </div>
         </div>
@@ -171,7 +173,7 @@ export function AdminPage() {
                   onSubmit={(home, away) =>
                     run(
                       () => simulateResult.mutateAsync({ matchId: match.id, homeScore: home, awayScore: away }),
-                      `Result set for ${matchLabel(match)}`,
+                      t('admin.resultSet', { match: matchLabel(match) }),
                     )
                   }
                 />
@@ -180,7 +182,7 @@ export function AdminPage() {
           ))}
         </div>
         <p className="text-xs text-slate-500">
-          Entering a result finalizes the match and scores all predictions immediately.
+          {t('admin.resultHint')}
         </p>
       </section>
     </div>
@@ -195,9 +197,9 @@ function SimulateResult({ onSubmit }: { onSubmit: (home: number, away: number) =
   return (
     <span className="flex items-center gap-1">
       <input type="number" min={0} max={20} value={home} onChange={(e) => setHome(Number(e.target.value))}
-             className={numberClass} aria-label="Simulated home score" />
+             className={numberClass} aria-label="Home score" />
       <input type="number" min={0} max={20} value={away} onChange={(e) => setAway(Number(e.target.value))}
-             className={numberClass} aria-label="Simulated away score" />
+             className={numberClass} aria-label="Away score" />
       <button type="button" onClick={() => onSubmit(home, away)}
               className="rounded-lg bg-slate-700 px-2 py-1 text-xs font-semibold">
         FT

@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { PendingInviteHandler } from './PendingInviteHandler'
+import { useT } from '../i18n'
 
 const tabClass = ({ isActive }: { isActive: boolean }) =>
   `flex flex-1 flex-col items-center gap-0.5 py-2 text-xs font-medium transition-colors ${
@@ -9,6 +10,7 @@ const tabClass = ({ isActive }: { isActive: boolean }) =>
 
 export function AppShell() {
   const { user } = useAuth()
+  const t = useT()
   return (
     <div className="mx-auto flex min-h-dvh max-w-lg flex-col bg-slate-950 text-slate-100">
       <PendingInviteHandler />
@@ -19,20 +21,20 @@ export function AppShell() {
         <div className="mx-auto flex max-w-lg">
           <NavLink to="/" end className={tabClass}>
             <span aria-hidden className="text-lg">⚽</span>
-            Predict
+            {t('nav.predict')}
           </NavLink>
           <NavLink to="/table" className={tabClass}>
             <span aria-hidden className="text-lg">🏆</span>
-            Leagues
+            {t('nav.leagues')}
           </NavLink>
           <NavLink to="/profile" className={tabClass}>
             <span aria-hidden className="text-lg">👤</span>
-            Profile
+            {t('nav.profile')}
           </NavLink>
           {user?.admin && (
             <NavLink to="/admin" className={tabClass}>
               <span aria-hidden className="text-lg">🛠️</span>
-              Admin
+              {t('nav.admin')}
             </NavLink>
           )}
         </div>

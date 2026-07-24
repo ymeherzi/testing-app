@@ -22,6 +22,8 @@ const CODES = [
   'VN', 'VU', 'WF', 'WS', 'YE', 'YT', 'ZA', 'ZM', 'ZW',
 ] as const
 
+import { currentLocale } from '../i18n'
+
 export interface Country {
   code: string
   name: string
@@ -39,7 +41,7 @@ function displayName(code: string, locale: string): string {
 let cache: { locale: string; countries: Country[] } | null = null
 
 /** All countries, named in the given locale and sorted alphabetically for it. */
-export function countries(locale: string = navigator.language): Country[] {
+export function countries(locale: string = currentLocale()): Country[] {
   if (cache?.locale === locale) {
     return cache.countries
   }
@@ -51,6 +53,6 @@ export function countries(locale: string = navigator.language): Country[] {
   return list
 }
 
-export function countryName(code: string | null, locale: string = navigator.language): string | null {
+export function countryName(code: string | null, locale: string = currentLocale()): string | null {
   return code ? displayName(code, locale) : null
 }
