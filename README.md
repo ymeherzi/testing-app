@@ -125,7 +125,7 @@ still works locally.
 | Variable | Meaning |
 |---|---|
 | `RESEND_API_KEY` | enables real delivery |
-| `MAIL_FROM` | sender, e.g. `Warga <no-reply@warga.app>` — **required** whenever the key is set |
+| `MAIL_FROM` | sender on your verified domain — **required** whenever the key is set |
 | `MAIL_LOG_CODES` | testing only: prints codes to the log (see the checklist below) |
 
 **Resend only delivers to arbitrary recipients from a verified domain.**

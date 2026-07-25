@@ -15,7 +15,7 @@ public record MailProperties(String resendApiKey, String from, Boolean logCodes)
             // recipient at send time. Better to say so at startup.
             throw new IllegalStateException(
                     "RESEND_API_KEY is set but MAIL_FROM is not. Set MAIL_FROM to an address on a "
-                    + "domain verified at resend.com/domains, e.g. \"Warga <no-reply@warga.app>\".");
+                    + "domain verified at resend.com/domains, e.g. \"Warga <no-reply@example.com>\".");
         }
     }
 
