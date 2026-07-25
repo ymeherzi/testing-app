@@ -4,6 +4,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
 
 /** resend.com adapter — active as soon as RESEND_API_KEY is set. */
 public class ResendEmailSender implements EmailSender {
@@ -29,9 +30,18 @@ public class ResendEmailSender implements EmailSender {
                     .body(Map.of("from", from, "to", to, "subject", subject, "text", body))
                     .retrieve()
                     .toBodilessEntity();
-        } catch (Exception e) {
-            // Never break signup because mail is down; the user can request a resend.
-            log.error("Sending mail to {} failed: {}", to, e.getMessage());
+        } catch (RestClientResponseException e) {
+            // Resend explains itself in the body ("verify a domain at
+            // resend.com/domains", "invalid api key") and nowhere else.
+            throw failed(to, e.getStatusCode() + ": " + e.getResponseBodyAsString(), e);
+        } catch (RuntimeException e) {
+            throw failed(to, String.valueOf(e.getMessage()), e);
         }
+    }
+
+    private static MailDeliveryException failed(String to, String detail, RuntimeException cause) {
+        String message = "Sending mail to %s failed: %s".formatted(to, detail);
+        log.error(message);
+        return new MailDeliveryException(message, cause);
     }
 }

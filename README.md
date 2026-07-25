@@ -115,6 +115,35 @@ Demo-mode note: the seed provider regenerates fixtures relative to *now* on
 every restart (results reset). With `footballdata` the scheduled jobs keep
 fixtures and results real and results never regress.
 
+## Email (verification codes)
+
+Signup and new-device logins email a six-digit code. Delivery goes through
+[resend.com](https://resend.com) behind an `EmailSender` port; with no
+provider configured the app falls back to `LoggingEmailSender` so the flow
+still works locally.
+
+| Variable | Meaning |
+|---|---|
+| `RESEND_API_KEY` | enables real delivery |
+| `MAIL_FROM` | sender, e.g. `Warga <no-reply@warga.app>` — **required** whenever the key is set |
+| `MAIL_LOG_CODES` | testing only: prints codes to the log (see the checklist below) |
+
+**Resend only delivers to arbitrary recipients from a verified domain.**
+Its shared `onboarding@resend.dev` sender is limited to the account
+owner's own address and answers 403 for everyone else — which is why
+`MAIL_FROM` has no default: a wrong sender fails at send time for real
+users, while a missing one fails loudly at startup. To send to anyone:
+
+1. Add your domain at resend.com/domains.
+2. Publish the DNS records it shows — an MX and SPF `TXT` on the `send`
+   subdomain, a DKIM `TXT` on `resend._domainkey`, optionally a `_dmarc`
+   policy. On Cloudflare keep them **DNS only** (grey cloud).
+3. Once it reads *Verified*, set `MAIL_FROM` to an address on that domain.
+
+A refused send is reported, not swallowed: the API answers 502 and the
+code screen shows it, because an account whose code never arrives cannot
+be verified. Signup rolls back with it, so the address stays free.
+
 ## Before going live — security checklist
 
 Things that are deliberately relaxed while testing and **must be revisited
@@ -123,8 +152,9 @@ before real users sign up**:
 - [ ] **`MAIL_LOG_CODES` must be unset.** With it on, six-digit login codes
       are printed to the application log; anyone who can read logs can take
       over an account. Off by default — it only exists so the verification
-      flow is testable before a mail provider is configured. Setting
-      `RESEND_API_KEY` removes the need for it entirely.
+      flow is testable before a mail provider is configured. It stops being
+      needed the moment `RESEND_API_KEY` and a verified-domain `MAIL_FROM`
+      can reach any inbox.
 - [ ] **Move the JWT out of `localStorage`.** Today the session token is
       readable by any script on the page (XSS). The intended fix is a
       refresh token in an HttpOnly cookie; the resource-server side needs no
@@ -133,7 +163,8 @@ before real users sign up**:
       credential that has been pasted into a chat or issue.
 - [ ] **Add rate limiting** on `/api/auth/*` — code entry is capped at five
       attempts per code, but nothing yet limits how many codes an address can
-      request.
+      request. Once delivery reaches any inbox, `/api/auth/resend` can be
+      aimed at strangers, so this grows from a cost concern to an abuse one.
 
 Reviewed and considered acceptable:
 

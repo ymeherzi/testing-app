@@ -40,6 +40,17 @@ public class GlobalExceptionHandler {
         return org.springframework.http.ResponseEntity.status(ex.getStatusCode()).body(problem);
     }
 
+    /**
+     * The account is unusable until its code arrives, so a failed send is
+     * reported rather than hidden behind a cheerful "code sent".
+     */
+    @ExceptionHandler(com.predictor.auth.email.MailDeliveryException.class)
+    public ProblemDetail handleMailFailure(com.predictor.auth.email.MailDeliveryException ex) {
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_GATEWAY);
+        problem.setDetail("We couldn't send your code — try again in a moment");
+        return problem;
+    }
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ProblemDetail handleIntegrity(DataIntegrityViolationException ex) {
         ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);

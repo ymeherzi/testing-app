@@ -30,7 +30,13 @@ public class AuthService {
         this.verification = verification;
     }
 
-    /** Creates the account and emails a code; no session until it's confirmed. */
+    /**
+     * Creates the account and emails a code; no session until it's confirmed.
+     *
+     * <p>A delivery failure rolls the account back with the transaction, on
+     * purpose: an account nobody can verify only blocks the address from
+     * being used again.
+     */
     @Transactional
     public AuthResponse signup(SignupRequest request) {
         if (users.existsByEmailIgnoreCase(request.email())) {

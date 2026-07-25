@@ -64,8 +64,13 @@ export function VerifyCodeForm({ email }: { email: string }) {
         onClick={async () => {
           setNotice(null)
           setError(null)
-          await resend(email)
-          setNotice(t('verify.resent'))
+          try {
+            await resend(email)
+            setNotice(t('verify.resent'))
+          } catch (e) {
+            // mail can be refused (502) — saying so beats a silent no-op
+            setError(e instanceof Error ? e.message : t('verify.failed'))
+          }
         }}
         className="mt-6 text-center text-sm text-slate-400 underline"
       >
