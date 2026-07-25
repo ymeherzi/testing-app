@@ -31,15 +31,20 @@ public class VerificationService {
     private final EmailSender emailSender;
     private final PasswordEncoder passwordEncoder;
     private final Clock clock;
+    private final org.springframework.transaction.support.TransactionTemplate attemptTx;
     private final SecureRandom random = new SecureRandom();
 
     public VerificationService(AuthCodeRepository codes, TrustedDeviceRepository devices,
-                               EmailSender emailSender, PasswordEncoder passwordEncoder, Clock clock) {
+                               EmailSender emailSender, PasswordEncoder passwordEncoder,
+                               org.springframework.transaction.PlatformTransactionManager txManager, Clock clock) {
         this.codes = codes;
         this.devices = devices;
         this.emailSender = emailSender;
         this.passwordEncoder = passwordEncoder;
         this.clock = clock;
+        this.attemptTx = new org.springframework.transaction.support.TransactionTemplate(txManager);
+        this.attemptTx.setPropagationBehavior(
+                org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
 
     @Transactional
@@ -68,11 +73,18 @@ public class VerificationService {
         if (!code.isUsable(now)) {
             throw new ResponseStatusException(HttpStatus.GONE, "That code has expired — request a new one");
         }
-        code.recordAttempt();
+        // Committed on its own: rejecting the code rolls back the caller's
+        // transaction, and a failed guess that unwinds with it would leave
+        // the attempt limit permanently at zero — i.e. unlimited guessing.
+        recordAttempt(code.getId());
         if (!passwordEncoder.matches(submitted.trim(), code.getCodeHash())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "That code is not right");
         }
         code.consume(now);
+    }
+
+    private void recordAttempt(Long codeId) {
+        attemptTx.executeWithoutResult(status -> codes.findById(codeId).ifPresent(AuthCode::recordAttempt));
     }
 
     /** True when the caller's device token is known, unexpired and theirs. */
