@@ -122,37 +122,40 @@ Signup and new-device logins email a six-digit code. Delivery goes through
 provider configured the app falls back to `LoggingEmailSender` so the flow
 still works locally.
 
-Two providers are supported; an SMTP relay wins when both are set.
+Two providers are supported; an SMTP relay wins when both are set, but on
+Railway only Resend can actually be used (see below).
 
 | Variable | Meaning |
 |---|---|
-| `MAIL_SMTP_HOST` / `_PORT` / `_USERNAME` / `_PASSWORD` | any SMTP relay (Brevo, Mailjet, Gmail). Port defaults to 587 |
-| `RESEND_API_KEY` | resend.com instead |
+| `MAIL_SMTP_HOST` / `_PORT` / `_USERNAME` / `_PASSWORD` | any SMTP relay; port defaults to 587. Local development or a non-Railway host only |
+| `RESEND_API_KEY` | resend.com over HTTPS — the one that works on Railway |
 | `MAIL_FROM` | sender the provider has verified — **required** with either |
 | `MAIL_LOG_CODES` | testing only: prints codes to the log (see the checklist below) |
 
-**Which one can mail your users depends on what the provider verifies.**
-Resend verifies a whole *domain*: until you own one and publish its DNS
-records, its shared `onboarding@resend.dev` sender answers 403 for every
-recipient except the account owner. Relays like Brevo verify a single
-*sender address* — confirm one mailbox and you can write to anybody, on a
-free 300/day tier, with no domain and no DNS. That is why SMTP is
-preferred and why the two are kept side by side.
+**You need a domain you own. There is no working shortcut around it** —
+this was established the hard way, so don't spend the afternoon again:
+
+- Resend verifies a whole *domain*. Until one is verified, its shared
+  `onboarding@resend.dev` sender answers 403 for every recipient except the
+  account owner.
+- A Railway-provided `*.up.railway.app` address can never be that domain:
+  Railway allows no DNS records on it, so it can never be verified.
+- Relays that verify a single *sender address* instead (Brevo, Mailjet)
+  will not accept a free-mail sender: `@gmail.com` and friends cannot be
+  authenticated, and since the 2024 Gmail/Yahoo sender rules such mail is
+  rewritten, rejected, or filtered as spam.
+- SMTP is unavailable on Railway below the **Pro** plan — ports 25/465/587
+  are blocked on Free, Trial and Hobby. `SmtpEmailSender` is therefore for
+  local development (Mailpit, MailHog) or a non-Railway host; it stays
+  inert while `MAIL_SMTP_HOST` is empty.
+
+So: buy a domain (~$10-15/year), verify it at resend.com/domains, publish
+the records it shows (MX + SPF `TXT` on the `send` subdomain, DKIM `TXT` on
+`resend._domainkey`, optionally `_dmarc`; on Cloudflare keep them **DNS
+only**), and point `MAIL_FROM` at an address on it.
 
 `MAIL_FROM` has no default on purpose: a wrong sender fails per user at
 send time, while a missing one fails loudly at startup.
-
-- **SMTP (Brevo):** add and confirm a sender under *Senders, Domains &
-  Dedicated IPs*, generate an SMTP key under *SMTP & API*, then set
-  `MAIL_SMTP_HOST=smtp-relay.brevo.com`, the login as
-  `MAIL_SMTP_USERNAME`, the key as `MAIL_SMTP_PASSWORD`, and `MAIL_FROM`
-  to the confirmed address.
-- **Resend:** add your domain at resend.com/domains, publish the records it
-  shows (MX + SPF `TXT` on the `send` subdomain, DKIM `TXT` on
-  `resend._domainkey`, optionally `_dmarc`; on Cloudflare keep them **DNS
-  only**), then point `MAIL_FROM` at that domain. A Railway-provided
-  `*.up.railway.app` address cannot be used — Railway allows no DNS
-  records on it, so it can never be verified.
 
 A refused send is reported, not swallowed: the API answers 502 and the
 code screen shows it, because an account whose code never arrives cannot
