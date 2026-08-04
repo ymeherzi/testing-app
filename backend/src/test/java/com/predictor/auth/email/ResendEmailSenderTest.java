@@ -28,8 +28,8 @@ class ResendEmailSenderTest {
 
     private final RestClient.Builder builder = RestClient.builder();
     private final MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
-    private final EmailSender sender = new ResendEmailSender(
-            builder, new MailProperties("re_test_key", "Warga <no-reply@warga.app>", null));
+    private final EmailSender sender = new ResendEmailSender(builder, new MailProperties(
+            null, "re_test_key", "Warga <no-reply@warga.app>", null));
 
     @Test
     void anAcceptedMessagePostsTheCodeToResend() {

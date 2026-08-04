@@ -122,23 +122,37 @@ Signup and new-device logins email a six-digit code. Delivery goes through
 provider configured the app falls back to `LoggingEmailSender` so the flow
 still works locally.
 
+Two providers are supported; an SMTP relay wins when both are set.
+
 | Variable | Meaning |
 |---|---|
-| `RESEND_API_KEY` | enables real delivery |
-| `MAIL_FROM` | sender on your verified domain — **required** whenever the key is set |
+| `MAIL_SMTP_HOST` / `_PORT` / `_USERNAME` / `_PASSWORD` | any SMTP relay (Brevo, Mailjet, Gmail). Port defaults to 587 |
+| `RESEND_API_KEY` | resend.com instead |
+| `MAIL_FROM` | sender the provider has verified — **required** with either |
 | `MAIL_LOG_CODES` | testing only: prints codes to the log (see the checklist below) |
 
-**Resend only delivers to arbitrary recipients from a verified domain.**
-Its shared `onboarding@resend.dev` sender is limited to the account
-owner's own address and answers 403 for everyone else — which is why
-`MAIL_FROM` has no default: a wrong sender fails at send time for real
-users, while a missing one fails loudly at startup. To send to anyone:
+**Which one can mail your users depends on what the provider verifies.**
+Resend verifies a whole *domain*: until you own one and publish its DNS
+records, its shared `onboarding@resend.dev` sender answers 403 for every
+recipient except the account owner. Relays like Brevo verify a single
+*sender address* — confirm one mailbox and you can write to anybody, on a
+free 300/day tier, with no domain and no DNS. That is why SMTP is
+preferred and why the two are kept side by side.
 
-1. Add your domain at resend.com/domains.
-2. Publish the DNS records it shows — an MX and SPF `TXT` on the `send`
-   subdomain, a DKIM `TXT` on `resend._domainkey`, optionally a `_dmarc`
-   policy. On Cloudflare keep them **DNS only** (grey cloud).
-3. Once it reads *Verified*, set `MAIL_FROM` to an address on that domain.
+`MAIL_FROM` has no default on purpose: a wrong sender fails per user at
+send time, while a missing one fails loudly at startup.
+
+- **SMTP (Brevo):** add and confirm a sender under *Senders, Domains &
+  Dedicated IPs*, generate an SMTP key under *SMTP & API*, then set
+  `MAIL_SMTP_HOST=smtp-relay.brevo.com`, the login as
+  `MAIL_SMTP_USERNAME`, the key as `MAIL_SMTP_PASSWORD`, and `MAIL_FROM`
+  to the confirmed address.
+- **Resend:** add your domain at resend.com/domains, publish the records it
+  shows (MX + SPF `TXT` on the `send` subdomain, DKIM `TXT` on
+  `resend._domainkey`, optionally `_dmarc`; on Cloudflare keep them **DNS
+  only**), then point `MAIL_FROM` at that domain. A Railway-provided
+  `*.up.railway.app` address cannot be used — Railway allows no DNS
+  records on it, so it can never be verified.
 
 A refused send is reported, not swallowed: the API answers 502 and the
 code screen shows it, because an account whose code never arrives cannot

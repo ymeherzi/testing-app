@@ -28,6 +28,13 @@ management:
 
 app:
   mail:
+    # any SMTP relay (Brevo, Mailjet, Gmail): reaches any recipient once the
+    # provider has verified the MAIL_FROM address. Takes precedence over Resend.
+    smtp:
+      host: ${MAIL_SMTP_HOST:}
+      port: ${MAIL_SMTP_PORT:587}
+      username: ${MAIL_SMTP_USERNAME:}
+      password: ${MAIL_SMTP_PASSWORD:}
     resend-api-key: ${RESEND_API_KEY:}
     from: ${MAIL_FROM:}
     # testing aid only — prints login codes to the log. Must stay off in production.
