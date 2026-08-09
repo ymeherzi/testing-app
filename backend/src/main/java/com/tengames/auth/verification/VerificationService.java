@@ -66,9 +66,11 @@ public class VerificationService {
         String code = "%06d".formatted(random.nextInt(1_000_000));
         Instant now = clock.instant();
         codes.save(new AuthCode(user.getId(), purpose, passwordEncoder.encode(code), now.plus(CODE_TTL)));
-        String subject = purpose == AuthCode.Purpose.VERIFY_EMAIL
-                ? "Your Ten Games confirmation code"
-                : "New sign-in to Ten Games";
+        String subject = switch (purpose) {
+            case VERIFY_EMAIL -> "Your Ten Games confirmation code";
+            case NEW_DEVICE -> "New sign-in to Ten Games";
+            case RESET_PASSWORD -> "Reset your Ten Games password";
+        };
         emailSender.send(user.getEmail(), subject, """
                 Hi %s,
 

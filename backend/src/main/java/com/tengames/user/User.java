@@ -98,6 +98,11 @@ public class User {
         this.favouriteClubTeamId = favouriteClubTeamId;
     }
 
+    /** Used by a password reset, once the code proved control of the inbox. */
+    public void changePassword(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
     public boolean isEmailVerified() {
         return emailVerified;
     }

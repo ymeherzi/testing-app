@@ -34,6 +34,15 @@ public final class AuthDtos {
     public record ResendRequest(@NotBlank @Email String email) {
     }
 
+    public record ForgotPasswordRequest(@NotBlank @Email String email) {
+    }
+
+    public record ResetPasswordRequest(
+            @NotBlank @Email String email,
+            @NotBlank @Size(min = 6, max = 6) String code,
+            @NotBlank @Size(min = 8, max = 72) String password) {
+    }
+
     public record GoogleRequest(@NotBlank String idToken) {
     }
 

@@ -13,6 +13,7 @@ import { LoginPage } from './pages/LoginPage'
 import { PlayerPage } from './pages/PlayerPage'
 import { PredictPage } from './pages/PredictPage'
 import { ProfilePage } from './pages/ProfilePage'
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
 import { SignupPage } from './pages/SignupPage'
 
 const queryClient = new QueryClient({
@@ -40,6 +41,7 @@ export default function App() {
             <Routes>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
+              <Route path="/forgot" element={<ForgotPasswordPage />} />
               <Route path="/join/:code" element={<JoinDeepLinkPage />} />
               <Route element={<RequireAuth />}>
                 <Route element={<AppShell />}>

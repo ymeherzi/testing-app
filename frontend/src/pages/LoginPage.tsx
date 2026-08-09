@@ -69,6 +69,11 @@ export function LoginPage() {
           {busy ? t('auth.signingIn') : t('auth.signIn')}
         </button>
       </form>
+      <p className="mt-4 text-center text-sm">
+        <Link to="/forgot" className="text-slate-400 underline">
+          {t('auth.forgotPassword')}
+        </Link>
+      </p>
       <GoogleSignInButton />
       <p className="mt-6 text-center text-sm text-slate-400">
         {t('auth.newHere')}{' '}

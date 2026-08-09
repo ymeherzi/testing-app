@@ -43,6 +43,18 @@ export const en = {
   'auth.or': 'or',
   'auth.googleFailed': 'Google sign-in did not work',
 
+  'auth.forgotPassword': 'Forgot your password?',
+  'forgot.title': 'Reset your password',
+  'forgot.subtitle': "Tell us your address and we'll send a six-digit code.",
+  'forgot.sendCode': 'Send the code',
+  'forgot.sending': 'Sending…',
+  'forgot.codeSent': 'We sent a six-digit code to {email}. Enter it below with your new password.',
+  'forgot.newPassword': 'New password (8 characters minimum)',
+  'forgot.submit': 'Change my password',
+  'forgot.saving': 'Saving…',
+  'forgot.backToSignIn': 'Back to sign in',
+  'forgot.failed': "That didn't work",
+
   'verify.title': 'Check your email',
   'verify.subtitle': 'We sent a six-digit code to {email}.',
   'verify.submit': 'Confirm',

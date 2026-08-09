@@ -14,7 +14,7 @@ import java.time.Instant;
 @Table(name = "auth_codes")
 public class AuthCode {
 
-    public enum Purpose {VERIFY_EMAIL, NEW_DEVICE}
+    public enum Purpose {VERIFY_EMAIL, NEW_DEVICE, RESET_PASSWORD}
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1,9 +1,11 @@
 package com.tengames.auth;
 
 import com.tengames.auth.AuthDtos.AuthResponse;
+import com.tengames.auth.AuthDtos.ForgotPasswordRequest;
 import com.tengames.auth.AuthDtos.GoogleRequest;
 import com.tengames.auth.AuthDtos.LoginRequest;
 import com.tengames.auth.AuthDtos.ResendRequest;
+import com.tengames.auth.AuthDtos.ResetPasswordRequest;
 import com.tengames.auth.AuthDtos.SignupRequest;
 import com.tengames.auth.AuthDtos.VerifyRequest;
 import jakarta.servlet.http.HttpServletRequest;
@@ -45,6 +47,17 @@ public class AuthController {
     @PostMapping("/resend")
     public AuthResponse resend(@Valid @RequestBody ResendRequest request) {
         return authService.resend(request.email());
+    }
+
+    @PostMapping("/forgot")
+    public AuthResponse forgot(@Valid @RequestBody ForgotPasswordRequest request) {
+        return authService.forgotPassword(request.email());
+    }
+
+    @PostMapping("/reset")
+    public AuthResponse reset(@Valid @RequestBody ResetPasswordRequest request, HttpServletRequest servletRequest) {
+        return authService.resetPassword(request.email(), request.code(), request.password(),
+                deviceLabel(servletRequest));
     }
 
     @PostMapping("/google")

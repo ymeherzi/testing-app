@@ -15,6 +15,8 @@ interface AuthState {
   signup: (input: SignupInput) => Promise<AuthOutcome>
   verify: (email: string, code: string, rememberDevice: boolean) => Promise<void>
   resend: (email: string) => Promise<void>
+  forgotPassword: (email: string) => Promise<void>
+  resetPassword: (email: string, code: string, password: string) => Promise<void>
   signInWithGoogle: (idToken: string) => Promise<void>
   logout: () => void
   updateUser: (user: UserProfile) => void
@@ -85,6 +87,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await api<AuthResponse>('/api/auth/resend', { method: 'POST', body: JSON.stringify({ email }) })
   }, [])
 
+  const forgotPassword = useCallback(async (email: string) => {
+    await api<AuthResponse>('/api/auth/forgot', { method: 'POST', body: JSON.stringify({ email }) })
+  }, [])
+
+  const resetPassword = useCallback(
+    async (email: string, code: string, password: string) => {
+      persist(
+        await api<AuthResponse>('/api/auth/reset', {
+          method: 'POST',
+          body: JSON.stringify({ email, code, password }),
+        }),
+      )
+    },
+    [persist],
+  )
+
   const signInWithGoogle = useCallback(
     async (idToken: string) => {
       persist(await api<AuthResponse>('/api/auth/google', { method: 'POST', body: JSON.stringify({ idToken }) }))
@@ -104,8 +122,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const value = useMemo(
-    () => ({ user, login, signup, verify, resend, signInWithGoogle, logout, updateUser }),
-    [user, login, signup, verify, resend, signInWithGoogle, logout, updateUser],
+    () => ({ user, login, signup, verify, resend, forgotPassword, resetPassword,
+              signInWithGoogle, logout, updateUser }),
+    [user, login, signup, verify, resend, forgotPassword, resetPassword,
+     signInWithGoogle, logout, updateUser],
   )
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

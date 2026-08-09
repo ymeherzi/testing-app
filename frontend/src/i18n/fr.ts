@@ -41,6 +41,18 @@ export const fr: Messages = {
   'auth.or': 'ou',
   'auth.googleFailed': "La connexion Google n'a pas fonctionné",
 
+  'auth.forgotPassword': 'Mot de passe oublié ?',
+  'forgot.title': 'Réinitialiser le mot de passe',
+  'forgot.subtitle': 'Indique ton adresse, on t\'envoie un code à six chiffres.',
+  'forgot.sendCode': 'Envoyer le code',
+  'forgot.sending': 'Envoi…',
+  'forgot.codeSent': 'Code à six chiffres envoyé à {email}. Saisis-le ci-dessous avec ton nouveau mot de passe.',
+  'forgot.newPassword': 'Nouveau mot de passe (8 caractères minimum)',
+  'forgot.submit': 'Changer mon mot de passe',
+  'forgot.saving': 'Enregistrement…',
+  'forgot.backToSignIn': 'Retour à la connexion',
+  'forgot.failed': "Ça n'a pas fonctionné",
+
   'verify.title': 'Vérifie tes e-mails',
   'verify.subtitle': 'Nous avons envoyé un code à six chiffres à {email}.',
   'verify.submit': 'Confirmer',

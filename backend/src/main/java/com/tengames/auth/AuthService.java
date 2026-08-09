@@ -84,6 +84,35 @@ public class AuthService {
         return AuthResponse.signedIn(jwtService.issueToken(user), user, deviceToken);
     }
 
+    /**
+     * Emails a reset code — and answers the same way whether or not the
+     * address has an account, so this endpoint can't be used to find out who
+     * plays. The per-address rate limit still applies.
+     */
+    @Transactional
+    public AuthResponse forgotPassword(String email) {
+        users.findByEmailIgnoreCase(email)
+                .ifPresent(user -> verification.sendCode(user, AuthCode.Purpose.RESET_PASSWORD));
+        return AuthResponse.codeSent(email);
+    }
+
+    /**
+     * Sets a new password once the code proves the caller reads that inbox,
+     * and signs them in — asking them to type the password they just chose
+     * would be ceremony, not security.
+     */
+    @Transactional
+    public AuthResponse resetPassword(String email, String code, String newPassword, String deviceLabel) {
+        User user = users.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No account for this email"));
+        verification.consumeCode(user, AuthCode.Purpose.RESET_PASSWORD, code);
+        user.changePassword(passwordEncoder.encode(newPassword));
+        // Reaching the inbox is the same proof signup asks for.
+        user.markEmailVerified();
+        return AuthResponse.signedIn(jwtService.issueToken(user), user,
+                verification.rememberDevice(user, deviceLabel));
+    }
+
     /** Re-sends whichever code the account currently needs. */
     @Transactional
     public AuthResponse resend(String email) {
