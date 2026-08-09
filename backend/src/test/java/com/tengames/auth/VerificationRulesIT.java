@@ -110,11 +110,18 @@ class VerificationRulesIT {
 
     private User user;
 
+    /**
+     * A fresh address per test: codes are rate-limited per address, so tests
+     * sharing one would start failing each other as soon as the suite grew.
+     */
+    private User freshUser() {
+        String email = "rules-%s@example.com".formatted(java.util.UUID.randomUUID());
+        return users.save(new User(email, passwordEncoder.encode("correct-horse"), "Rules", "TN", null));
+    }
+
     @BeforeEach
     void setUp() {
-        user = users.findByEmailIgnoreCase("rules@example.com").orElseGet(() ->
-                users.save(new User("rules@example.com", passwordEncoder.encode("correct-horse"),
-                        "Rules", "TN", null)));
+        user = freshUser();
     }
 
     @Test
@@ -185,16 +192,32 @@ class VerificationRulesIT {
     }
 
     @Test
+    void anAddressCannotBeMailedEndlessly() {
+        for (int sent = 1; sent <= 5; sent++) {
+            verification.sendCode(user, AuthCode.Purpose.VERIFY_EMAIL);
+        }
+        int delivered = mail.bodies.size();
+
+        assertThatThrownBy(() -> verification.sendCode(user, AuthCode.Purpose.VERIFY_EMAIL))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("Too many codes");
+        // the refusal must happen before the provider is called, or the quota
+        // is spent anyway and the address still receives the mail
+        assertThat(mail.bodies).hasSize(delivered);
+
+        clock.advance(Duration.ofHours(1).plusMinutes(1));
+        verification.sendCode(user, AuthCode.Purpose.VERIFY_EMAIL);
+        assertThat(mail.bodies).hasSize(delivered + 1);
+    }
+
+    @Test
     void rememberedDevicesExpireAndBelongToOneAccountOnly() {
         String token = verification.rememberDevice(user, "test-device");
         assertThat(verification.isTrustedDevice(user, token)).isTrue();
         assertThat(verification.isTrustedDevice(user, "not-a-real-token")).isFalse();
         assertThat(verification.isTrustedDevice(user, null)).isFalse();
 
-        User other = users.findByEmailIgnoreCase("rules-other@example.com").orElseGet(() ->
-                users.save(new User("rules-other@example.com", passwordEncoder.encode("correct-horse"),
-                        "Other", "TN", null)));
-        assertThat(verification.isTrustedDevice(other, token)).isFalse();
+        assertThat(verification.isTrustedDevice(freshUser(), token)).isFalse();
 
         clock.advance(Duration.ofDays(61));
         assertThat(verification.isTrustedDevice(user, token)).isFalse();

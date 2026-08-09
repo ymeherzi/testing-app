@@ -1,6 +1,7 @@
 package com.tengames.auth.verification;
 
 import com.tengames.auth.email.EmailSender;
+import com.tengames.common.ratelimit.RateLimiter;
 import com.tengames.user.User;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -9,6 +10,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HexFormat;
+import java.util.Locale;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -25,22 +27,28 @@ public class VerificationService {
 
     private static final Duration CODE_TTL = Duration.ofMinutes(15);
     private static final Duration DEVICE_TTL = Duration.ofDays(60);
+    /** Enough for a genuine retry or two; far short of using us to mail strangers. */
+    private static final int CODES_PER_ADDRESS = 5;
+    private static final Duration CODE_WINDOW = Duration.ofHours(1);
 
     private final AuthCodeRepository codes;
     private final TrustedDeviceRepository devices;
     private final EmailSender emailSender;
     private final PasswordEncoder passwordEncoder;
+    private final RateLimiter rateLimiter;
     private final Clock clock;
     private final org.springframework.transaction.support.TransactionTemplate attemptTx;
     private final SecureRandom random = new SecureRandom();
 
     public VerificationService(AuthCodeRepository codes, TrustedDeviceRepository devices,
                                EmailSender emailSender, PasswordEncoder passwordEncoder,
+                               RateLimiter rateLimiter,
                                org.springframework.transaction.PlatformTransactionManager txManager, Clock clock) {
         this.codes = codes;
         this.devices = devices;
         this.emailSender = emailSender;
         this.passwordEncoder = passwordEncoder;
+        this.rateLimiter = rateLimiter;
         this.clock = clock;
         this.attemptTx = new org.springframework.transaction.support.TransactionTemplate(txManager);
         this.attemptTx.setPropagationBehavior(
@@ -49,6 +57,12 @@ public class VerificationService {
 
     @Transactional
     public void sendCode(User user, AuthCode.Purpose purpose) {
+        // Guarding here rather than per endpoint covers every path that can
+        // ever send a code, so nobody can point the app at a stranger's inbox
+        // — and it protects the provider's free daily quota with it.
+        rateLimiter.check("code:" + user.getEmail().toLowerCase(Locale.ROOT),
+                CODES_PER_ADDRESS, CODE_WINDOW,
+                "Too many codes requested for this address — try again later");
         String code = "%06d".formatted(random.nextInt(1_000_000));
         Instant now = clock.instant();
         codes.save(new AuthCode(user.getId(), purpose, passwordEncoder.encode(code), now.plus(CODE_TTL)));
