@@ -11,10 +11,10 @@
     <relativePath/>
   </parent>
 
-  <groupId>com.predictor</groupId>
-  <artifactId>predictor-backend</artifactId>
+  <groupId>com.prono10</groupId>
+  <artifactId>prono10-backend</artifactId>
   <version>0.1.0-SNAPSHOT</version>
-  <name>predictor-backend</name>
+  <name>prono10-backend</name>
   <description>Football prediction game — backend API</description>
 
   <properties>

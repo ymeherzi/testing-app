@@ -1,21 +1,23 @@
-const PENDING_KEY = 'predictor.pendingInvite'
+import { clearStored, readStored, writeStored } from './storage'
+
+const PENDING_KEY = 'pendingInvite'
 
 export function inviteLink(code: string): string {
   return `${window.location.origin}/join/${code}`
 }
 
 export function stashPendingInvite(code: string) {
-  localStorage.setItem(PENDING_KEY, code.trim().toUpperCase())
+  writeStored(PENDING_KEY, code.trim().toUpperCase())
 }
 
 export function popPendingInvite(): string | null {
-  const code = localStorage.getItem(PENDING_KEY)
+  const code = readStored(PENDING_KEY)
   if (code) {
-    localStorage.removeItem(PENDING_KEY)
+    clearStored(PENDING_KEY)
   }
   return code
 }
 
 export function peekPendingInvite(): string | null {
-  return localStorage.getItem(PENDING_KEY)
+  return readStored(PENDING_KEY)
 }

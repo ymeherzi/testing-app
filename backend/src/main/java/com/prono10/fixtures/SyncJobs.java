@@ -1,0 +1,47 @@
+package com.prono10.fixtures;
+
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+/**
+ * Scheduled data jobs (design §6). Disabled by default and in dev/tests via
+ * app.jobs.enabled; the admin/dev endpoints trigger the same services
+ * manually.
+ */
+@Component
+@ConditionalOnProperty(name = "app.jobs.enabled", havingValue = "true")
+public class SyncJobs {
+
+    private final FixtureSyncService syncService;
+    private final ResultPollingService resultPollingService;
+    private final Clock clock;
+
+    public SyncJobs(FixtureSyncService syncService, ResultPollingService resultPollingService, Clock clock) {
+        this.syncService = syncService;
+        this.resultPollingService = resultPollingService;
+        this.clock = clock;
+    }
+
+    /** Full upcoming-window sync, once a day. */
+    @Scheduled(cron = "0 0 5 * * *", zone = "UTC")
+    public void dailyFixtureSync() {
+        syncService.syncAll();
+    }
+
+    /** Hourly kickoff refresh for the next 48h — locks follow moved kickoffs. */
+    @Scheduled(cron = "0 15 * * * *", zone = "UTC")
+    public void kickoffRefresh() {
+        LocalDate today = LocalDate.ofInstant(clock.instant(), ZoneOffset.UTC);
+        syncService.syncAll(today, today.plusDays(2));
+    }
+
+    /** Result polling; self-suppresses when no match window is active. */
+    @Scheduled(fixedDelayString = "PT5M", initialDelayString = "PT1M")
+    public void pollResults() {
+        resultPollingService.poll();
+    }
+}

@@ -2,15 +2,15 @@ services:
   postgres:
     image: postgres:17-alpine
     environment:
-      POSTGRES_DB: predictor
-      POSTGRES_USER: predictor
-      POSTGRES_PASSWORD: predictor
+      POSTGRES_DB: prono10
+      POSTGRES_USER: prono10
+      POSTGRES_PASSWORD: prono10
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U predictor -d predictor"]
+      test: ["CMD-SHELL", "pg_isready -U prono10 -d prono10"]
       interval: 5s
       timeout: 3s
       retries: 10

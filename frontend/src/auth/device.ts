@@ -1,12 +1,14 @@
-const DEVICE_KEY = 'predictor.device'
+import { readStored, writeStored } from '../lib/storage'
+
+const DEVICE_KEY = 'device'
 
 /** Opaque token proving this device already passed a code check. */
 export function deviceToken(): string | null {
-  return localStorage.getItem(DEVICE_KEY)
+  return readStored(DEVICE_KEY)
 }
 
 export function rememberDeviceToken(token: string | null) {
   if (token) {
-    localStorage.setItem(DEVICE_KEY, token)
+    writeStored(DEVICE_KEY, token)
   }
 }

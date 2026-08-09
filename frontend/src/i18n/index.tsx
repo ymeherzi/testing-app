@@ -1,12 +1,13 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
 import { en, type MessageKey, type Messages } from './en'
 import { fr } from './fr'
+import { readStored, writeStored } from '../lib/storage'
 
 export const LOCALES = { en: 'English', fr: 'Français' } as const
 export type Locale = keyof typeof LOCALES
 
 const CATALOGUES: Record<Locale, Messages> = { en, fr }
-const STORAGE_KEY = 'predictor.locale'
+const STORAGE_KEY = 'locale'
 
 /**
  * The active locale is also readable outside React (see currentLocale) so
@@ -20,7 +21,7 @@ export function currentLocale(): Locale {
 }
 
 function detectLocale(): Locale {
-  const stored = localStorage.getItem(STORAGE_KEY)
+  const stored = readStored(STORAGE_KEY)
   if (stored && stored in CATALOGUES) {
     return stored as Locale
   }
@@ -71,7 +72,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   })
 
   const setLocale = useCallback((next: Locale) => {
-    localStorage.setItem(STORAGE_KEY, next)
+    writeStored(STORAGE_KEY, next)
     active = next
     document.documentElement.lang = next
     setLocaleState(next)

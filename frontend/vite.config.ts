@@ -15,8 +15,8 @@ export default defineConfig({
         skipWaiting: true,
       },
       manifest: {
-        name: 'Predictor',
-        short_name: 'Predictor',
+        name: 'Prono10',
+        short_name: 'Prono10',
         description: 'Football score prediction game',
         theme_color: '#0f172a',
         background_color: '#0f172a',

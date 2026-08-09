@@ -2,8 +2,9 @@ import { createContext, useCallback, useContext, useMemo, useState, type ReactNo
 import { api, getToken, setToken } from '../api/client'
 import type { AuthResponse, UserProfile } from '../api/types'
 import { deviceToken, rememberDeviceToken } from './device'
+import { clearStored, readStored, writeStored } from '../lib/storage'
 
-const USER_KEY = 'predictor.user'
+const USER_KEY = 'user'
 
 /** Either we're signed in, or a code is waiting in the user's inbox. */
 export type AuthOutcome = { signedIn: true } | { signedIn: false; email: string }
@@ -33,7 +34,7 @@ function storedUser(): UserProfile | null {
   if (!getToken()) {
     return null
   }
-  const raw = localStorage.getItem(USER_KEY)
+  const raw = readStored(USER_KEY)
   return raw ? (JSON.parse(raw) as UserProfile) : null
 }
 
@@ -46,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setToken(auth.token)
     rememberDeviceToken(auth.deviceToken)
-    localStorage.setItem(USER_KEY, JSON.stringify(auth.user))
+    writeStored(USER_KEY, JSON.stringify(auth.user))
     setUser(auth.user)
     return { signedIn: true }
   }, [])
@@ -93,12 +94,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     setToken(null)
-    localStorage.removeItem(USER_KEY)
+    clearStored(USER_KEY)
     setUser(null)
   }, [])
 
   const updateUser = useCallback((updated: UserProfile) => {
-    localStorage.setItem(USER_KEY, JSON.stringify(updated))
+    writeStored(USER_KEY, JSON.stringify(updated))
     setUser(updated)
   }, [])
 

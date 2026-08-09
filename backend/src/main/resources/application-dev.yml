@@ -18,4 +18,4 @@ spring:
 
 logging:
   level:
-    com.predictor: DEBUG
+    com.prono10: DEBUG

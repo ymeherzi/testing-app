@@ -1,10 +1,10 @@
 spring:
   application:
-    name: predictor
+    name: prono10
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/predictor}
-    username: ${DB_USER:predictor}
-    password: ${DB_PASSWORD:predictor}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/prono10}
+    username: ${DB_USER:prono10}
+    password: ${DB_PASSWORD:prono10}
   jpa:
     hibernate:
       ddl-auto: validate
