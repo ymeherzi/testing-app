@@ -11,10 +11,10 @@
     <relativePath/>
   </parent>
 
-  <groupId>com.prono10</groupId>
-  <artifactId>prono10-backend</artifactId>
+  <groupId>com.tengames</groupId>
+  <artifactId>tengames-backend</artifactId>
   <version>0.1.0-SNAPSHOT</version>
-  <name>prono10-backend</name>
+  <name>tengames-backend</name>
   <description>Football prediction game — backend API</description>
 
   <properties>

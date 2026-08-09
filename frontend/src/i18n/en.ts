@@ -5,7 +5,7 @@
  * chosen by Intl.PluralRules when a `count` param is passed.
  */
 export const en = {
-  'app.name': 'Prono10',
+  'app.name': 'Ten Games',
   'app.tagline': 'Call the scores. Top the table.',
 
   'nav.predict': 'Predict',
@@ -32,7 +32,7 @@ export const en = {
   'auth.newHere': 'New here?',
   'auth.createAccount': 'Create an account',
   'auth.alreadyPlaying': 'Already playing?',
-  'auth.signupTitle': 'Join Prono10',
+  'auth.signupTitle': 'Join Ten Games',
   'auth.signupSubtitle': 'Your country and club drop you straight into their public leagues.',
   'auth.signupSubmit': 'Start predicting',
   'auth.signupPending': 'Creating account…',
@@ -124,7 +124,7 @@ export const en = {
   'leagues.leaveFailed': 'Could not leave',
   'leagues.invite': 'Invite friends',
   'leagues.linkCopied': 'Link copied ✓',
-  'leagues.shareTitle': 'Join "{league}" on Prono10',
+  'leagues.shareTitle': 'Join "{league}" on Ten Games',
 
   'createLeague.title': 'Create a league',
   'createLeague.subtitle':

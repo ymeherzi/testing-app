@@ -18,4 +18,4 @@ spring:
 
 logging:
   level:
-    com.prono10: DEBUG
+    com.tengames: DEBUG

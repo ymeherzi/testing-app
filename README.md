@@ -1,4 +1,4 @@
-# Prono10 — football score prediction game
+# Ten Games — football score prediction game
 
 Predict scorelines for curated big matches across Europe, earn points on a
 tiered scale, and climb season-long league tables. The full product and

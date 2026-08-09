@@ -2,7 +2,7 @@ import type { Messages } from './en'
 
 /** French catalogue. Typed against English, so nothing can go missing. */
 export const fr: Messages = {
-  'app.name': 'Prono10',
+  'app.name': 'Ten Games',
   'app.tagline': 'Annonce les scores. Domine le classement.',
 
   'nav.predict': 'Pronos',
@@ -29,7 +29,7 @@ export const fr: Messages = {
   'auth.newHere': 'Nouveau ici ?',
   'auth.createAccount': 'Créer un compte',
   'auth.alreadyPlaying': 'Déjà inscrit ?',
-  'auth.signupTitle': 'Rejoins Prono10',
+  'auth.signupTitle': 'Rejoins Ten Games',
   'auth.signupSubtitle': 'Ton pays et ton club te placent directement dans leurs ligues publiques.',
   'auth.signupSubmit': 'Commencer à pronostiquer',
   'auth.signupPending': 'Création du compte…',
@@ -123,7 +123,7 @@ export const fr: Messages = {
   'leagues.leaveFailed': 'Impossible de quitter la ligue',
   'leagues.invite': 'Inviter des amis',
   'leagues.linkCopied': 'Lien copié ✓',
-  'leagues.shareTitle': 'Rejoins « {league} » sur Prono10',
+  'leagues.shareTitle': 'Rejoins « {league} » sur Ten Games',
 
   'createLeague.title': 'Créer une ligue',
   'createLeague.subtitle':

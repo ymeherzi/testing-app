@@ -27,6 +27,6 @@ RUN ./mvnw -B -DskipTests package
 # --- Stage 3: runtime ---
 FROM ${BASE}eclipse-temurin:21-jre-alpine
 WORKDIR /app
-COPY --from=backend /app/target/prono10-backend-*.jar app.jar
+COPY --from=backend /app/target/tengames-backend-*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]

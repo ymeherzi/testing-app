@@ -1,10 +1,10 @@
 spring:
   application:
-    name: prono10
+    name: tengames
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/prono10}
-    username: ${DB_USER:prono10}
-    password: ${DB_PASSWORD:prono10}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/tengames}
+    username: ${DB_USER:tengames}
+    password: ${DB_PASSWORD:tengames}
   jpa:
     hibernate:
       ddl-auto: validate
