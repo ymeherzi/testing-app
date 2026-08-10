@@ -3,6 +3,7 @@ package com.tengames.gameweek;
 import com.tengames.catalog.MatchRepository;
 import com.tengames.gameweek.GameweekDtos.GameweekView;
 import com.tengames.gameweek.GameweekDtos.MatchView;
+import com.tengames.gameweek.suggestion.FixtureSuggester;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -60,6 +61,10 @@ public class AdminGameweekController {
     public record SetFixturesRequest(@NotEmpty List<Long> matchIds) {
     }
 
+    /** A proposed fixture, with the reason it was picked so the editor can judge it. */
+    public record SuggestionView(MatchView match, int score, List<String> reasons) {
+    }
+
     @GetMapping("/gameweeks")
     public List<GameweekView> listGameweeks() {
         return gameweekService.listAll();
@@ -69,6 +74,28 @@ public class AdminGameweekController {
     public GameweekView create(@Valid @RequestBody CreateGameweekRequest request) {
         return gameweekService.createDraft(request.season(), request.weekIndex(), request.type(),
                 request.windowStart(), request.windowEnd());
+    }
+
+    /**
+     * Proposes a card for a window: ten fixtures by default, weighted towards
+     * derbies and games between big clubs, spread across competitions. Only a
+     * proposal — the editor adds, removes and reorders before saving.
+     */
+    @GetMapping("/gameweeks/suggestions")
+    @Transactional(readOnly = true)
+    public List<SuggestionView> suggestions(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(defaultValue = "10") int size) {
+        LocalDate today = LocalDate.ofInstant(clock.instant(), ZoneOffset.UTC);
+        Instant fromInstant = (from != null ? from : today).atStartOfDay(ZoneOffset.UTC).toInstant();
+        Instant toInstant = (to != null ? to : today.plusDays(7)).plusDays(1)
+                .atStartOfDay(ZoneOffset.UTC).toInstant();
+        List<com.tengames.catalog.Match> pool =
+                matches.findByKickoffUtcBetweenOrderByKickoffUtcAsc(fromInstant, toInstant);
+        return FixtureSuggester.suggest(pool, size).stream()
+                .map(s -> new SuggestionView(MatchView.from(s.match()), s.score(), s.reasons()))
+                .toList();
     }
 
     @PutMapping("/gameweeks/{id}/fixtures")
