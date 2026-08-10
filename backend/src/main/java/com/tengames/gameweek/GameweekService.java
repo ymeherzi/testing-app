@@ -71,7 +71,7 @@ public class GameweekService {
     public List<GameweekSummary> history(long userId) {
         return jdbc.sql("""
                         select gw.id, gw.season, gw.week_index, gw.type, gw.status,
-                               gw.window_start, gw.window_end,
+                               gw.window_start, gw.window_end, gw.counts_towards_table,
                                (select count(*) from gameweek_fixtures f where f.gameweek_id = gw.id) as fixture_count,
                                coalesce((select sum(p.points) from predictions p
                                          join gameweek_fixtures f2 on f2.id = p.gameweek_fixture_id
@@ -88,6 +88,7 @@ public class GameweekService {
                         rs.getLong("id"), rs.getString("season"), rs.getInt("week_index"),
                         rs.getString("type"), rs.getString("status"),
                         rs.getTimestamp("window_start").toInstant(), rs.getTimestamp("window_end").toInstant(),
+                        rs.getBoolean("counts_towards_table"),
                         rs.getInt("fixture_count"), rs.getLong("my_points"), rs.getInt("my_predictions")))
                 .list();
     }
@@ -162,12 +163,21 @@ public class GameweekService {
     // --- admin operations ---
 
     @Transactional
+    /** An ordinary round, counting towards the season standings. */
     public GameweekView createDraft(String season, int weekIndex, Gameweek.Type type,
                                     Instant windowStart, Instant windowEnd) {
+        return createDraft(season, weekIndex, type, windowStart, windowEnd, true);
+    }
+
+    @Transactional
+    public GameweekView createDraft(String season, int weekIndex, Gameweek.Type type,
+                                    Instant windowStart, Instant windowEnd, boolean countsTowardsTable) {
         if (!windowEnd.isAfter(windowStart)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "windowEnd must be after windowStart");
         }
-        Gameweek gameweek = gameweeks.save(new Gameweek(season, weekIndex, type, windowStart, windowEnd));
+        Gameweek draft = new Gameweek(season, weekIndex, type, windowStart, windowEnd);
+        draft.setCountsTowardsTable(countsTowardsTable);
+        Gameweek gameweek = gameweeks.save(draft);
         return GameweekView.of(gameweek, List.of());
     }
 

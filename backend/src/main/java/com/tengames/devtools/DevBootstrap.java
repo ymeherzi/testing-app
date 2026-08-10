@@ -111,7 +111,7 @@ public class DevBootstrap implements ApplicationRunner {
         }
         Long gameweekId = gameweekService
                 .createDraft(currentSeason(), 1, Gameweek.Type.WEEKEND,
-                        now.minus(Duration.ofDays(2)), now.plus(Duration.ofDays(4)))
+                        now.minus(Duration.ofDays(2)), now.plus(Duration.ofDays(4)), true)
                 .id();
         gameweekService.setFixtures(gameweekId, matchIds);
         gameweekService.publish(gameweekId);

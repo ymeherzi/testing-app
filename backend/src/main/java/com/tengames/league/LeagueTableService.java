@@ -40,13 +40,26 @@ public class LeagueTableService {
                               long points, long scoredPredictions, boolean admin) {
     }
 
+    /**
+     * Season standings. Predictions are joined through their gameweek so a
+     * preview round — played and scored like any other, but marked as not
+     * counting — never reaches the table. The join stays a LEFT JOIN all the
+     * way down: a player whose only predictions were in a preview must still
+     * appear, on zero, rather than vanish from the rankings.
+     */
     private static final String TOTALS_FILTERED = """
             select u.id, u.public_id, u.display_name, u.country,
                    coalesce(sum(p.points), 0) as points,
                    count(p.points) as scored,
                    rank() over (order by coalesce(sum(p.points), 0) desc) as rnk
             from users u
-            left join predictions p on p.user_id = u.id
+            left join (
+                select p.user_id, p.points
+                from predictions p
+                join gameweek_fixtures gf on gf.id = p.gameweek_fixture_id
+                join gameweeks gw on gw.id = gf.gameweek_id
+                where gw.counts_towards_table
+            ) p on p.user_id = u.id
             %s
             group by u.id, u.public_id, u.display_name, u.country
             """;
@@ -125,6 +138,7 @@ public class LeagueTableService {
                             from predictions p
                             join gameweek_fixtures gf on gf.id = p.gameweek_fixture_id
                             join gameweeks gw on gw.id = gf.gameweek_id
+                            where gw.counts_towards_table
                         ) sp on sp.user_id = u.id
                            and (m.join_gameweek_id is null or sp.window_start >= jgw.window_start)
                         where m.league_id = :leagueId

@@ -47,18 +47,20 @@ public final class GameweekDtos {
     }
 
     public record GameweekView(Long id, String season, int weekIndex, String type, String status,
-                               Instant windowStart, Instant windowEnd, List<FixtureView> fixtures) {
+                               Instant windowStart, Instant windowEnd, boolean countsTowardsTable,
+                               List<FixtureView> fixtures) {
 
         public static GameweekView of(Gameweek gameweek, List<FixtureView> fixtures) {
             return new GameweekView(gameweek.getId(), gameweek.getSeason(), gameweek.getWeekIndex(),
                     gameweek.getType().name(), gameweek.getStatus().name(),
-                    gameweek.getWindowStart(), gameweek.getWindowEnd(), fixtures);
+                    gameweek.getWindowStart(), gameweek.getWindowEnd(),
+                    gameweek.isCountsTowardsTable(), fixtures);
         }
     }
 
     /** Row in the gameweek history list, with the caller's own return for it. */
     public record GameweekSummary(Long id, String season, int weekIndex, String type, String status,
-                                  Instant windowStart, Instant windowEnd,
+                                  Instant windowStart, Instant windowEnd, boolean countsTowardsTable,
                                   int fixtureCount, long myPoints, int myPredictions) {
     }
 

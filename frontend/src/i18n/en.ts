@@ -70,6 +70,8 @@ export const en = {
   'guide.leaguesTitle': 'Play against people you know',
   'guide.leaguesBody': 'You are automatically in the global table, your country and your club. For friends, family or colleagues, create a private league and share the invite link — they join in one tap.',
 
+  'predict.previewRound': 'Warm-up round — points shown, not counted in the table',
+
   'rules.title': 'Game rules',
   'rules.scoringTitle': 'How points work',
   'rules.tierExact': 'Exact scoreline',

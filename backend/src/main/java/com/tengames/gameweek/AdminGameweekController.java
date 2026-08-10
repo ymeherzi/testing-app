@@ -49,11 +49,16 @@ public class AdminGameweekController {
             @Min(1) int weekIndex,
             Gameweek.Type type,
             @NotNull Instant windowStart,
-            @NotNull Instant windowEnd) {
+            @NotNull Instant windowEnd,
+            /** False for a warm-up round: played and scored, never ranked. */
+            Boolean countsTowardsTable) {
 
         public CreateGameweekRequest {
             if (type == null) {
                 type = Gameweek.Type.WEEKEND;
+            }
+            if (countsTowardsTable == null) {
+                countsTowardsTable = true;
             }
         }
     }
@@ -73,7 +78,7 @@ public class AdminGameweekController {
     @PostMapping("/gameweeks")
     public GameweekView create(@Valid @RequestBody CreateGameweekRequest request) {
         return gameweekService.createDraft(request.season(), request.weekIndex(), request.type(),
-                request.windowStart(), request.windowEnd());
+                request.windowStart(), request.windowEnd(), request.countsTowardsTable());
     }
 
     /**

@@ -58,6 +58,8 @@ export interface GameweekView {
   status: 'DRAFT' | 'PUBLISHED' | 'SCORED'
   windowStart: string
   windowEnd: string
+  /** false for a warm-up round: points are shown but never ranked */
+  countsTowardsTable: boolean
   fixtures: FixtureView[]
 }
 
@@ -97,6 +99,7 @@ export interface GameweekSummary {
   status: 'DRAFT' | 'PUBLISHED' | 'SCORED'
   windowStart: string
   windowEnd: string
+  countsTowardsTable: boolean
   fixtureCount: number
   myPoints: number
   myPredictions: number

@@ -68,6 +68,8 @@ export const fr: Messages = {
   'guide.leaguesTitle': 'Joue contre des gens que tu connais',
   'guide.leaguesBody': 'Tu es automatiquement dans le classement mondial, celui de ton pays et celui de ton club. Pour tes amis, ta famille ou tes collègues, crée une ligue privée et partage le lien d\'invitation — ils rejoignent en un geste.',
 
+  'predict.previewRound': 'Journée blanche — les points s\'affichent mais ne comptent pas au classement',
+
   'rules.title': 'Règles du jeu',
   'rules.scoringTitle': 'Comment on marque',
   'rules.tierExact': 'Score exact',

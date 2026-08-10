@@ -52,6 +52,11 @@ export function PredictPage() {
               {gameweek.season}
             </span>
           </h1>
+          {!gameweek.countsTowardsTable && (
+            <p className="mt-1 inline-block rounded-lg bg-amber-500/15 px-2 py-1 text-xs font-medium text-amber-300">
+              {t('predict.previewRound')}
+            </p>
+          )}
           <p className="mt-1 text-sm text-slate-400">
             {t('predict.progress', { predicted, total: gameweek.fixtures.length })}
             {gameweek.status === 'SCORED' && <span className="ml-2 text-emerald-400">· {t('common.points', { count: myPoints })}</span>}

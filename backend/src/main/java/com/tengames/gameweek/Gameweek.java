@@ -36,6 +36,9 @@ public class Gameweek {
     @Column(nullable = false)
     private Status status = Status.DRAFT;
 
+    @Column(name = "counts_towards_table", nullable = false)
+    private boolean countsTowardsTable = true;
+
     @Column(name = "window_start", nullable = false)
     private Instant windowStart;
 
@@ -75,6 +78,15 @@ public class Gameweek {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    /** False for a warm-up round: points are shown but never ranked. */
+    public boolean isCountsTowardsTable() {
+        return countsTowardsTable;
+    }
+
+    public void setCountsTowardsTable(boolean countsTowardsTable) {
+        this.countsTowardsTable = countsTowardsTable;
     }
 
     public Instant getWindowStart() {
