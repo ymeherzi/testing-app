@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import type { FixtureView } from '../api/types'
 import { countdown, kickoffTimeLabel, pointsLabelKey } from '../lib/format'
 import { useT } from '../i18n'
-import { score } from '../lib/scoring'
+import { useScoringScale } from '../api/queries'
+import { pointsFor } from '../lib/scoring'
 import { ScoreStepper } from './ScoreStepper'
 import { TeamBadge } from './TeamBadge'
 
@@ -63,13 +64,15 @@ export function MatchCard({ fixture, onSave }: Props) {
     }, 600)
   }
 
+  const { data: scale } = useScoringScale()
   const badge = statusBadge(fixture)
   const remaining = countdown(fixture.kickoffUtc)
   const points = fixture.prediction?.points ?? null
   // provisional points while a real score exists but official scoring hasn't run
   const onCourse =
     fixture.prediction && fixture.homeScore != null && fixture.awayScore != null && points == null
-      ? score(fixture.prediction.homeGoals, fixture.prediction.awayGoals, fixture.homeScore, fixture.awayScore)
+      ? pointsFor(scale, fixture.prediction.homeGoals, fixture.prediction.awayGoals,
+          fixture.homeScore, fixture.awayScore)
       : null
 
   return (

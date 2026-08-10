@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { PendingInviteHandler } from './PendingInviteHandler'
+import { WelcomeGuide } from './WelcomeGuide'
 import { useT } from '../i18n'
 
 const tabClass = ({ isActive }: { isActive: boolean }) =>
@@ -14,6 +15,7 @@ export function AppShell() {
   return (
     <div className="mx-auto flex min-h-dvh max-w-lg flex-col bg-slate-950 text-slate-100">
       <PendingInviteHandler />
+      <WelcomeGuide />
       <main className="flex-1 pb-20">
         <Outlet />
       </main>

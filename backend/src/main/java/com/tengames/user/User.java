@@ -29,6 +29,9 @@ public class User {
     @Column(name = "email_verified", nullable = false)
     private boolean emailVerified;
 
+    @Column(name = "guide_seen", nullable = false)
+    private boolean guideSeen;
+
     /** Google's stable user id, set for accounts that sign in with Google. */
     @Column(name = "google_subject", unique = true)
     private String googleSubject;
@@ -105,6 +108,15 @@ public class User {
 
     public boolean isEmailVerified() {
         return emailVerified;
+    }
+
+    public boolean isGuideSeen() {
+        return guideSeen;
+    }
+
+    /** Set when the player finishes the welcome guide or skips it. */
+    public void markGuideSeen() {
+        this.guideSeen = true;
     }
 
     public void markEmailVerified() {

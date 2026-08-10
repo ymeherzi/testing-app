@@ -13,6 +13,7 @@ import { LoginPage } from './pages/LoginPage'
 import { PlayerPage } from './pages/PlayerPage'
 import { PredictPage } from './pages/PredictPage'
 import { ProfilePage } from './pages/ProfilePage'
+import { RulesPage } from './pages/RulesPage'
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
 import { SignupPage } from './pages/SignupPage'
 
@@ -55,6 +56,7 @@ export default function App() {
                   <Route path="/table/league/:id" element={<PrivateLeaguePage />} />
                   <Route path="/players/:playerId" element={<PlayerPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
+                  <Route path="/rules" element={<RulesPage />} />
                   <Route element={<RequireAdmin />}>
                     <Route path="/admin" element={<AdminPage />} />
                   </Route>

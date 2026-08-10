@@ -6,6 +6,8 @@ export interface UserProfile {
   country: string | null
   favouriteClubTeamId: number | null
   admin: boolean
+  /** false until the welcome guide has been finished or skipped */
+  guideSeen: boolean
 }
 
 export interface AuthResponse {

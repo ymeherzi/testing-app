@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from './client'
+import type { ScoringScale } from '../lib/scoring'
 import type {
   GameweekSummary,
   GameweekView,
@@ -12,6 +13,18 @@ import type {
   Team,
   UserProfile,
 } from './types'
+
+/**
+ * What each scoring tier is worth. Published by the server so the numbers
+ * live only in ScoringEngine; it cannot change while the app is open.
+ */
+export function useScoringScale() {
+  return useQuery({
+    queryKey: ['scoring-scale'],
+    queryFn: () => api<ScoringScale>('/api/rules/scoring'),
+    staleTime: Infinity,
+  })
+}
 
 export function useCurrentGameweek() {
   return useQuery({

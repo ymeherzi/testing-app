@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Size;
 import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,6 +35,19 @@ public class UserController {
     @Transactional(readOnly = true)
     public UserResponse me(Authentication authentication) {
         return UserResponse.from(users.findById(CurrentUser.id(authentication)).orElseThrow());
+    }
+
+    /**
+     * Finishing or skipping the welcome guide — a verb of its own rather than
+     * another field on the profile update, which exists to edit a nickname
+     * and a club.
+     */
+    @PostMapping("/guide-seen")
+    @Transactional
+    public UserResponse guideSeen(Authentication authentication) {
+        User user = users.findById(CurrentUser.id(authentication)).orElseThrow();
+        user.markGuideSeen();
+        return UserResponse.from(user);
     }
 
     @PutMapping

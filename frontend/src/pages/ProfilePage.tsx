@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useTeams, useUpdateProfile } from '../api/queries'
 import { useAuth } from '../auth/AuthContext'
 import { countries } from '../lib/countries'
@@ -90,6 +90,13 @@ export function ProfilePage() {
           {updateProfile.isPending ? t('profile.saving') : t('profile.save')}
         </button>
       </form>
+
+      <Link
+        to="/rules"
+        className="mb-3 block w-full rounded-xl border border-slate-700 py-3 text-center font-semibold text-slate-300 active:bg-slate-900"
+      >
+        {t('profile.rules')}
+      </Link>
 
       <button
         type="button"

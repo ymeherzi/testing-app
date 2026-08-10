@@ -1,21 +1,22 @@
 import { useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { useGameweekHistory, usePlayerGameweek } from '../api/queries'
+import { useGameweekHistory, usePlayerGameweek, useScoringScale } from '../api/queries'
 import type { FixtureView } from '../api/types'
 import { GameweekPicker } from '../components/GameweekPicker'
 import { TeamBadge } from '../components/TeamBadge'
 import { useAuth } from '../auth/AuthContext'
 import { countryFlag, kickoffDayLabel, kickoffTimeLabel, pointsLabelKey } from '../lib/format'
 import { useT } from '../i18n'
-import { score } from '../lib/scoring'
+import { pointsFor } from '../lib/scoring'
 
 function PredictionRow({ fixture }: { fixture: FixtureView }) {
   const t = useT()
+  const { data: scale } = useScoringScale()
   const prediction = fixture.prediction
   const points = prediction?.points ?? null
   const onCourse =
     prediction && fixture.homeScore != null && fixture.awayScore != null && points == null
-      ? score(prediction.homeGoals, prediction.awayGoals, fixture.homeScore, fixture.awayScore)
+      ? pointsFor(scale, prediction.homeGoals, prediction.awayGoals, fixture.homeScore, fixture.awayScore)
       : null
 
   return (
