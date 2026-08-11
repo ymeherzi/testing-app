@@ -25,20 +25,31 @@ class SeedSyncIT {
     @Autowired
     private MatchRepository matches;
 
+    /** Rows this provider owns; other suites share the database and add their own. */
+    private long seededMatches() {
+        return matches.findAll().stream()
+                .filter(match -> match.getProviderRef() != null && match.getProviderRef().startsWith("seed:"))
+                .count();
+    }
+
     @Test
     void seedSyncIsIdempotent() {
         FixtureSyncService.SyncSummary first = syncService.syncAll();
         long teamCount = teams.count();
-        long matchCount = matches.count();
+        long matchCount = seededMatches();
 
         // 6 competitions × 6 generated matches
         assertThat(first.matchesUpserted()).isEqualTo(36);
         assertThat(matchCount).isEqualTo(36);
         assertThat(teamCount).isGreaterThan(0);
+        assertThat(first.failed()).isEmpty();
 
+        // running it twice must not double anything — the point of the test.
+        // Counting only what this provider owns, because a total over the
+        // whole table makes this fail the day another suite stores a match.
         syncService.syncAll();
         assertThat(teams.count()).isEqualTo(teamCount);
-        assertThat(matches.count()).isEqualTo(matchCount);
+        assertThat(seededMatches()).isEqualTo(matchCount);
     }
 
     @Test

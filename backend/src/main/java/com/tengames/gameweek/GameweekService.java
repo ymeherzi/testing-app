@@ -114,7 +114,7 @@ public class GameweekService {
         long points = 0;
         int revealed = 0;
         int hidden = 0;
-        for (GameweekFixture fixture : fixtures.findByGameweekIdOrderByMatchKickoffUtcAsc(gameweekId)) {
+        for (GameweekFixture fixture : card(gameweekId)) {
             boolean locked = isLocked(fixture.getMatch(), now);
             Prediction prediction = theirs.get(fixture.getId());
             if (locked) {
@@ -136,7 +136,7 @@ public class GameweekService {
     }
 
     private GameweekView viewForUser(Gameweek gameweek, long userId) {
-        List<GameweekFixture> gameweekFixtures = fixtures.findByGameweekIdOrderByMatchKickoffUtcAsc(gameweek.getId());
+        List<GameweekFixture> gameweekFixtures = card(gameweek.getId());
         Map<Long, Prediction> mine = predictions.findByUserIdAndGameweekFixtureGameweekId(userId, gameweek.getId())
                 .stream()
                 .collect(Collectors.toMap(p -> p.getGameweekFixture().getId(), Function.identity()));
@@ -267,10 +267,21 @@ public class GameweekService {
 
     private GameweekView viewForAdmin(Gameweek gameweek) {
         Instant now = clock.instant();
-        List<FixtureView> views = fixtures.findByGameweekIdOrderByMatchKickoffUtcAsc(gameweek.getId()).stream()
+        List<FixtureView> views = card(gameweek.getId()).stream()
                 .map(fixture -> FixtureView.of(fixture, isLocked(fixture.getMatch(), now), null))
                 .toList();
         return GameweekView.of(gameweek, views);
+    }
+
+    /**
+     * The fixtures of a round, in the order they are shown.
+     *
+     * <p>Every screen goes through here rather than through the repository, so
+     * a new one cannot quietly fall back to raw kickoff order and interleave
+     * competitions that kick off together.
+     */
+    private List<GameweekFixture> card(long gameweekId) {
+        return CardOrder.sorted(fixtures.findByGameweekIdOrderByMatchKickoffUtcAsc(gameweekId));
     }
 
     private Gameweek requireGameweek(long gameweekId) {

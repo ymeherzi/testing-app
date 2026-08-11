@@ -18,7 +18,7 @@ import java.util.Set;
  * normalised key: lower case, accents stripped, common prefixes and suffixes
  * removed.
  */
-final class BigMatches {
+public final class BigMatches {
 
     /**
      * Clubs whose presence alone makes a fixture attractive.
@@ -111,7 +111,12 @@ final class BigMatches {
         return RIVALRIES.contains(pair(key(homeName), key(awayName)));
     }
 
-    static int competitionWeight(String competitionCode) {
+    /**
+     * Public because the display order of a card leans on the same judgement:
+     * two fixtures kicking off at the same minute are shown biggest first.
+     * One table, one opinion.
+     */
+    public static int competitionWeight(String competitionCode) {
         return COMPETITION_WEIGHT.getOrDefault(competitionCode, 3);
     }
 

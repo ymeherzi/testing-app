@@ -78,7 +78,7 @@ describe('subscribing', () => {
     }
     const fetchMock = vi.fn((path: string, options?: RequestInit) =>
       Promise.resolve(
-        path === '/api/push/key' && !options
+        path === '/api/push/key' && options?.method !== 'POST'
           ? new Response(JSON.stringify({ publicKey: 'BClient_key-value' }), { status: 200 })
           : new Response(null, { status: 204 }),
       ),
