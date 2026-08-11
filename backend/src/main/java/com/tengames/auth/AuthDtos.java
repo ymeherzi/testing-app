@@ -13,7 +13,9 @@ public final class AuthDtos {
 
     public record SignupRequest(
             @NotBlank @Email @Size(max = 255) String email,
-            @NotBlank @Size(min = 8, max = 72) String password,
+            // length is PasswordPolicy's to judge, so one place answers "why
+            // was it refused" — 72 is bcrypt's own ceiling
+            @NotBlank @Size(max = 72) String password,
             @NotBlank @Size(min = 2, max = 50) String displayName,
             @Pattern(regexp = "[A-Z]{2}", message = "must be an ISO 3166-1 alpha-2 code") String country,
             Long favouriteClubTeamId,
@@ -42,7 +44,7 @@ public final class AuthDtos {
     public record ResetPasswordRequest(
             @NotBlank @Email String email,
             @NotBlank @Size(min = 6, max = 6) String code,
-            @NotBlank @Size(min = 8, max = 72) String password) {
+            @NotBlank @Size(max = 72) String password) {
     }
 
     public record GoogleRequest(@NotBlank String idToken) {

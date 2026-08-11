@@ -70,7 +70,7 @@ describe('SignupPage', () => {
     renderPage()
 
     fill('Email', 'friend@example.com')
-    fill('Password (8+ characters)', 'correct-horse')
+    fill('Password (10+ characters)', 'correct-horse')
     fill('Display name', 'Friend')
 
     // the club is searched for, not scrolled to: two letters list nothing
@@ -91,7 +91,7 @@ describe('SignupPage', () => {
     renderPage()
 
     fill('Email', 'plain@example.com')
-    fill('Password (8+ characters)', 'correct-horse')
+    fill('Password (10+ characters)', 'correct-horse')
     fill('Display name', 'Plain')
     fireEvent.click(screen.getByRole('button', { name: 'Start predicting' }))
 

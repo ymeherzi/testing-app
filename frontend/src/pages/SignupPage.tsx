@@ -6,6 +6,7 @@ import { useAuth } from '../auth/AuthContext'
 import type { Team } from '../api/types'
 import { countries } from '../lib/countries'
 import { peekPendingInvite } from '../lib/invite'
+import { explain } from '../lib/apiMessage'
 import { useT } from '../i18n'
 import { ClubPicker } from '../components/ClubPicker'
 import { VerifyCodeForm } from '../auth/VerifyCodeForm'
@@ -46,10 +47,12 @@ export function SignupPage() {
         setPendingEmail(outcome.email)
       }
     } catch (e) {
-      if (e instanceof ApiError && e.errors) {
+      // a named reason is said in the player's language; a bag of field errors
+      // is still better than "signup failed"
+      if (e instanceof ApiError && !e.code && e.errors) {
         setError(Object.values(e.errors).join(' · '))
       } else {
-        setError(e instanceof Error ? e.message : t('auth.signupFailed'))
+        setError(explain(e, t, t('auth.signupFailed')))
       }
     } finally {
       setBusy(false)
@@ -77,9 +80,13 @@ export function SignupPage() {
       <form onSubmit={submit} className="space-y-4">
         <input type="email" required placeholder={t('auth.email')} autoComplete="email" value={email}
                onChange={(e) => setEmail(e.target.value)} className={inputClass} />
-        <input type="password" required minLength={8} placeholder={t('auth.passwordHint')}
-               autoComplete="new-password" value={password}
-               onChange={(e) => setPassword(e.target.value)} className={inputClass} />
+        <div className="space-y-1">
+          <input type="password" required minLength={10} placeholder={t('auth.passwordHint')}
+                 autoComplete="new-password" value={password}
+                 onChange={(e) => setPassword(e.target.value)} className={inputClass} />
+          {/* said before the server has to say it */}
+          <p className="px-1 text-xs text-slate-500">{t('password.hint')}</p>
+        </div>
         <input type="text" required minLength={2} maxLength={50} placeholder={t('auth.displayName')} value={displayName}
                onChange={(e) => setDisplayName(e.target.value)} className={inputClass} />
         <select value={country} onChange={(e) => setCountry(e.target.value)} className={inputClass}>

@@ -21,13 +21,16 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final VerificationService verification;
+    private final com.tengames.auth.email.EmailAddresses emailAddresses;
 
     public AuthService(UserRepository users, PasswordEncoder passwordEncoder, JwtService jwtService,
-                       VerificationService verification) {
+                       VerificationService verification,
+                       com.tengames.auth.email.EmailAddresses emailAddresses) {
         this.users = users;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.verification = verification;
+        this.emailAddresses = emailAddresses;
     }
 
     /**
@@ -42,6 +45,10 @@ public class AuthService {
         if (users.existsByEmailIgnoreCase(request.email())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "An account with this email already exists");
         }
+        // an address that cannot receive the code makes an account nobody can
+        // ever open, and the player waits for an email that is not coming
+        emailAddresses.require(request.email());
+        PasswordPolicy.require(request.password(), request.email(), request.displayName());
         User user = new User(request.email(), passwordEncoder.encode(request.password()),
                 request.displayName(), request.country(), request.favouriteClubTeamId());
         // signing up is the one moment a player fills these in willingly, and
@@ -108,6 +115,10 @@ public class AuthService {
     public AuthResponse resetPassword(String email, String code, String newPassword, String deviceLabel) {
         User user = users.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No account for this email"));
+        // the same bar as signup: a reset is the other way a password is chosen.
+        // Checked before the code is spent, so a refused password can be retyped
+        // with the code the player already has.
+        PasswordPolicy.require(newPassword, user.getEmail(), user.getDisplayName());
         verification.consumeCode(user, AuthCode.Purpose.RESET_PASSWORD, code);
         user.changePassword(passwordEncoder.encode(newPassword));
         // Reaching the inbox is the same proof signup asks for.

@@ -1,6 +1,10 @@
 import { useState } from 'react'
 import { disablePush, enablePush, pushAvailability } from '../lib/push'
+import { readStored, writeStored } from '../lib/storage'
 import { useT } from '../i18n'
+
+/** Set when the prompt on the predictions screen has been waved away. */
+const DISMISSED_KEY = 'pushPromptDismissed'
 
 /**
  * The one control for round notifications.
@@ -10,12 +14,17 @@ import { useT } from '../i18n'
  * button that cannot work — on an iPhone that has not installed the app, the
  * subscribe call fails with nothing a player could act on, so the instruction
  * takes the button's place.
+ *
+ * <p>The compact prompt can be dismissed. It sat above the fixtures on every
+ * visit with no way out, which is how a suggestion turns into nagging; the
+ * profile still carries the full control for whoever changes their mind.
  */
 export function PushOptIn({ compact = false }: { compact?: boolean }) {
   const t = useT()
   const [availability, setAvailability] = useState(pushAvailability)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [dismissed, setDismissed] = useState(() => readStored(DISMISSED_KEY) === 'true')
 
   const enable = async () => {
     setBusy(true)
@@ -46,13 +55,28 @@ export function PushOptIn({ compact = false }: { compact?: boolean }) {
   }
   // on the predictions screen there is nothing to say once they are on, or
   // once the player has said no in the browser
-  if (compact && (availability === 'granted' || availability === 'denied')) {
+  if (compact && (availability === 'granted' || availability === 'denied' || dismissed)) {
     return null
   }
 
   return (
     <div className="space-y-2 rounded-xl border border-slate-800 bg-slate-900 p-4">
-      <p className="text-sm font-medium text-slate-200">{t('push.title')}</p>
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-sm font-medium text-slate-200">{t('push.title')}</p>
+        {compact && (
+          <button
+            type="button"
+            onClick={() => {
+              writeStored(DISMISSED_KEY, 'true')
+              setDismissed(true)
+            }}
+            aria-label={t('push.dismiss')}
+            className="-mr-1 -mt-1 shrink-0 rounded-lg px-2 py-1 text-lg leading-none text-slate-500 active:bg-slate-800"
+          >
+            ×
+          </button>
+        )}
+      </div>
       <p className="text-xs text-slate-400">
         {availability === 'needs-install' && t('push.needsInstall')}
         {availability === 'denied' && t('push.denied')}
@@ -68,6 +92,18 @@ export function PushOptIn({ compact = false }: { compact?: boolean }) {
           className="w-full rounded-xl bg-emerald-500 py-2 text-sm font-semibold text-emerald-950 disabled:opacity-50"
         >
           {busy ? t('push.enabling') : t('push.enable')}
+        </button>
+      )}
+      {compact && availability === 'ready' && (
+        <button
+          type="button"
+          onClick={() => {
+            writeStored(DISMISSED_KEY, 'true')
+            setDismissed(true)
+          }}
+          className="w-full py-1 text-xs font-medium text-slate-500"
+        >
+          {t('push.later')}
         </button>
       )}
       {availability === 'granted' && !compact && (

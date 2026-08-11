@@ -36,6 +36,11 @@ function detectLocale(): Locale {
 
 export type Translate = (key: MessageKey, params?: Record<string, string | number>) => string
 
+/** Whether a string from outside — a server error code — is one we can say. */
+export function isMessageKey(value: string): value is MessageKey {
+  return value in en
+}
+
 function translator(locale: Locale): Translate {
   const catalogue = CATALOGUES[locale]
   const plurals = new Intl.PluralRules(locale)

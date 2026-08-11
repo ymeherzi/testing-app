@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { useT } from '../i18n'
+import { explain } from '../lib/apiMessage'
 
 /**
  * Password recovery in one screen: ask for the address, then take the code
@@ -26,7 +27,7 @@ export function ForgotPasswordPage() {
     try {
       await action()
     } catch (e) {
-      setError(e instanceof Error ? e.message : t('forgot.failed'))
+      setError(explain(e, t, t('forgot.failed')))
     } finally {
       setBusy(false)
     }
@@ -87,7 +88,7 @@ export function ForgotPasswordPage() {
           <input
             type="password"
             required
-            minLength={8}
+            minLength={10}
             placeholder={t('forgot.newPassword')}
             autoComplete="new-password"
             value={password}

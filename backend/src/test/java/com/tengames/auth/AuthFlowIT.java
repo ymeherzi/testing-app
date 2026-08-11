@@ -237,8 +237,17 @@ class AuthFlowIT {
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.email").isNotEmpty())
-                .andExpect(jsonPath("$.errors.password").isNotEmpty())
                 .andExpect(jsonPath("$.errors.displayName").isNotEmpty());
+        // the password is PasswordPolicy's to judge now, and it answers on its
+        // own terms — with the rule that was broken (see SignupRulesIT)
+        mockMvc.perform(post("/api/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email": "shortpass@example.com", "password": "short", "displayName": "Alex"}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.password").isNotEmpty())
+                .andExpect(jsonPath("$.code").value("password.tooShort"));
     }
 
     @Test

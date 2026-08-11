@@ -46,6 +46,22 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Refused input — a weak password, an address that cannot receive mail.
+     * The code travels beside the sentence so the client can say it in the
+     * player's own language, and the errors map puts the message under the
+     * field the form already displays.
+     */
+    @ExceptionHandler(RejectedException.class)
+    public ProblemDetail handleRejected(RejectedException ex) {
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        problem.setTitle("Rejected");
+        problem.setDetail(ex.getMessage());
+        problem.setProperty("code", ex.getCode());
+        problem.setProperty("errors", Map.of(ex.getField(), ex.getMessage()));
+        return problem;
+    }
+
+    /**
      * The account is unusable until its code arrives, so a failed send is
      * reported rather than hidden behind a cheerful "code sent".
      */
