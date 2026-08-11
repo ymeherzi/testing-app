@@ -240,7 +240,7 @@ public class EspnLiveScoreService {
     public record CompetitorJson(String homeAway, String score, TeamJson team) {
     }
 
-    public record TeamJson(String id, String displayName, String logo) {
+    public record TeamJson(String id, String displayName, String shortDisplayName, String logo) {
     }
 
     public record StatusJson(StatusTypeJson type) {

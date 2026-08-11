@@ -44,10 +44,12 @@ function FixtureRow({
     <li className="rounded-xl border border-slate-800 bg-slate-900 p-3">
       <p className="flex items-center gap-2 font-semibold text-slate-100">
         <TeamBadge team={fixture.homeTeam} size={20} />
-        <span className="min-w-0 truncate">{fixture.homeTeam.name}</span>
+        {/* short names keep a fixture on one line: "RCD Espanyol de
+            Barcelona — Levante UD" truncates to nothing useful on a phone */}
+        <span className="min-w-0 truncate">{fixture.homeTeam.shortName ?? fixture.homeTeam.name}</span>
         <span className="text-slate-500">—</span>
         <TeamBadge team={fixture.awayTeam} size={20} />
-        <span className="min-w-0 truncate">{fixture.awayTeam.name}</span>
+        <span className="min-w-0 truncate">{fixture.awayTeam.shortName ?? fixture.awayTeam.name}</span>
       </p>
       <div className="mt-1 flex items-center justify-between gap-2">
         <p className="text-xs text-slate-400">
@@ -110,6 +112,11 @@ export function RoundComposer({ spec, existing }: { spec: RoundSpec; existing?: 
       <header className="flex items-start justify-between gap-3">
         <div>
           <h2 className="font-bold text-slate-100">{spec.title}</h2>
+          {existing && existing.fixtures.length > 0 && (
+            <p className="text-xs text-slate-400">
+              {t('admin.fixtureCount', { count: existing.fixtures.length })}
+            </p>
+          )}
           {!spec.countsTowardsTable && (
             <span className="mt-1 inline-block rounded-lg bg-amber-500/15 px-2 py-0.5 text-xs text-amber-300">
               {t('admin.warmUp')}

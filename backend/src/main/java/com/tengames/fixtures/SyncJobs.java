@@ -45,11 +45,19 @@ public class SyncJobs {
         });
     }
 
-    /** Hourly kickoff refresh for the next 48h — locks follow moved kickoffs. */
+    /**
+     * Hourly refresh of the fortnight ahead.
+     *
+     * <p>Wider than the 48 hours it once covered: an editor composing a round
+     * needs the fixtures to be there when they press the button, not at five
+     * the next morning. Kickoff changes inside the window are picked up here
+     * too, so locks follow a rescheduled match.
+     */
     @Scheduled(cron = "0 15 * * * *", zone = "UTC")
     public void kickoffRefresh() {
         LocalDate today = LocalDate.ofInstant(clock.instant(), ZoneOffset.UTC);
-        syncService.syncAll(today, today.plusDays(2));
+        syncService.syncAll(today.minusDays(1), today.plusDays(14));
+        cupImporter.ifAvailable(importer -> importer.importCups(today.minusDays(1), today.plusDays(14)));
     }
 
     /** Result polling; self-suppresses when no match window is active. */

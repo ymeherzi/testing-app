@@ -93,9 +93,10 @@ export function AdminPage() {
         <button
           type="button"
           onClick={() => run(() => sync.mutateAsync(), t('admin.syncedFixtures'))}
-          className="rounded-lg bg-slate-800 px-3 py-2 text-sm font-medium"
+          disabled={sync.isPending}
+          className="rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm font-medium text-slate-100 active:bg-slate-700 disabled:opacity-60"
         >
-          {t('admin.syncFixtures')}
+          {sync.isPending ? t('admin.syncing') : t('admin.syncFixtures')}
         </button>
       </header>
 

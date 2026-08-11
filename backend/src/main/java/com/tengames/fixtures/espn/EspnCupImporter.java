@@ -175,8 +175,9 @@ public class EspnCupImporter {
                     }
                     return existing;
                 })
-                .orElseGet(() -> teams.save(
-                        new Team(team.displayName(), team.displayName(), team.logo(), ref)));
+                .orElseGet(() -> teams.save(new Team(team.displayName(),
+                        team.shortDisplayName() != null ? team.shortDisplayName() : team.displayName(),
+                        team.logo(), ref)));
     }
 
     /**
