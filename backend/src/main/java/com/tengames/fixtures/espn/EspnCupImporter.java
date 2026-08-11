@@ -156,18 +156,41 @@ public class EspnCupImporter {
     }
 
     /**
-     * Cup teams are matched on their ESPN id, so a club that also plays in a
-     * league we import from football-data ends up stored twice. Merging the
-     * two catalogues on name is a trap — "Arsenal" and "Arsenal FC" are the
-     * same club, "Manchester City" and "Manchester United" are not — so the
-     * duplicate is accepted and the fixture still reads correctly.
+     * The club behind a cup entry, reusing the one the league import already
+     * created rather than storing a twin.
+     *
+     * <p>Two sources spell clubs differently, so the match is made on a
+     * normalised key: "Arsenal FC" and "Arsenal" are one club. The key is
+     * deliberately conservative — Manchester City and Manchester United must
+     * stay apart — and an unrecognised name simply becomes a new club, which
+     * is the safe direction to be wrong in.
      */
     private Team teamFor(EspnLiveScoreService.TeamJson team) {
         String ref = "espn:team:" + team.id();
-        Team stored = teams.findByProviderRef(ref)
-                .orElseGet(() -> teams.save(new Team(team.displayName(), team.displayName(), team.logo(), ref)));
-        stored.setName(team.displayName());
-        stored.setCrestUrl(team.logo());
-        return stored;
+        return teams.findByProviderRef(ref)
+                .or(() -> matchByName(team.displayName()))
+                .map(existing -> {
+                    if (existing.getCrestUrl() == null) {
+                        existing.setCrestUrl(team.logo());
+                    }
+                    return existing;
+                })
+                .orElseGet(() -> teams.save(
+                        new Team(team.displayName(), team.displayName(), team.logo(), ref)));
+    }
+
+    /**
+     * Scanning the whole catalogue is fine here: it holds a few hundred clubs
+     * and this runs once a day, which is cheaper than carrying a normalised
+     * column and its index for one caller.
+     */
+    private java.util.Optional<Team> matchByName(String displayName) {
+        String key = com.tengames.catalog.ClubNames.key(displayName);
+        if (key.isEmpty()) {
+            return java.util.Optional.empty();
+        }
+        return teams.findAll().stream()
+                .filter(candidate -> com.tengames.catalog.ClubNames.key(candidate.getName()).equals(key))
+                .findFirst();
     }
 }

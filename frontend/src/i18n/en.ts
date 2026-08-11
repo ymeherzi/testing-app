@@ -75,6 +75,7 @@ export const en = {
   'admin.compose': 'Compose',
   'admin.composing': 'Composing…',
   'admin.composeFailed': "That didn't work",
+  'admin.recompose': 'Compose again',
   'admin.replace': 'Replace',
   'admin.choose': 'Choose',
   'admin.pickReplacement': 'Pick a replacement',

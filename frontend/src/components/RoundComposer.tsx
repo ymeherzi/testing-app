@@ -126,13 +126,25 @@ export function RoundComposer({ spec, existing }: { spec: RoundSpec; existing?: 
             {composeGameweek.isPending ? t('admin.composing') : t('admin.compose')}
           </button>
         ) : existing.status === 'DRAFT' ? (
-          <button
-            type="button"
-            onClick={() => run(() => publish.mutateAsync(existing.id))}
-            className="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-emerald-950"
-          >
-            {t('admin.publish')}
-          </button>
+          <div className="flex shrink-0 flex-col items-end gap-2">
+            <button
+              type="button"
+              onClick={() => run(() => publish.mutateAsync(existing.id))}
+              className="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-emerald-950"
+            >
+              {t('admin.publish')}
+            </button>
+            {/* fixtures keep arriving — a cup final imported after the first
+                attempt is invisible without a way to ask for a fresh card */}
+            <button
+              type="button"
+              onClick={compose}
+              disabled={composeGameweek.isPending}
+              className="text-xs font-medium text-emerald-400 underline disabled:opacity-50"
+            >
+              {composeGameweek.isPending ? t('admin.composing') : t('admin.recompose')}
+            </button>
+          </div>
         ) : (
           <span className="rounded-lg bg-slate-800 px-2 py-1 text-xs text-slate-300">{existing.status}</span>
         )}

@@ -73,6 +73,7 @@ export const fr: Messages = {
   'admin.compose': 'Composer',
   'admin.composing': 'Composition…',
   'admin.composeFailed': "Ça n'a pas fonctionné",
+  'admin.recompose': 'Recomposer',
   'admin.replace': 'Remplacer',
   'admin.choose': 'Choisir',
   'admin.pickReplacement': 'Choisis un remplaçant',

@@ -1,7 +1,6 @@
 package com.tengames.gameweek.suggestion;
 
-import java.text.Normalizer;
-import java.util.Locale;
+import com.tengames.catalog.ClubNames;
 import java.util.Map;
 import java.util.Set;
 
@@ -97,13 +96,7 @@ final class BigMatches {
     }
 
     static String key(String clubName) {
-        String stripped = Normalizer.normalize(clubName == null ? "" : clubName, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "")
-                .toLowerCase(Locale.ROOT);
-        // drop the corporate furniture and connectors that differ between
-        // providers: "Atletico de Madrid" and "Atletico Madrid" are one club
-        stripped = stripped.replaceAll("\\b(fc|cf|ac|as|ss|sc|ssc|afc|rc|cd|ud|club|calcio|de|di|del|of)\\b", " ");
-        return stripped.replaceAll("[^a-z0-9 ]", " ").replaceAll("\\s+", " ").trim();
+        return ClubNames.key(clubName);
     }
 
     static boolean isElite(String clubName) {
