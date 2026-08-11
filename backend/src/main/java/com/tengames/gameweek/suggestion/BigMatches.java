@@ -86,6 +86,10 @@ final class BigMatches {
      */
     private static final Map<String, Integer> COMPETITION_WEIGHT = Map.of(
             "CL", 10,
+            // a one-off final between two champions is the definition of a
+            // fixture worth putting in front of players
+            "CSHIELD", 9,
+            "TDC", 9,
             "PL", 8,
             "PD", 8,
             "SA", 6,
