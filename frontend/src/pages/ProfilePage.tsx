@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useTeamById, useUpdateProfile } from '../api/queries'
+import { useCompetitions, useTeamById, useUpdateProfile } from '../api/queries'
 import { useAuth } from '../auth/AuthContext'
 import type { Team } from '../api/types'
 import { countries } from '../lib/countries'
@@ -21,6 +21,9 @@ export function ProfilePage() {
   // the club the account already has, fetched once so the picker can show it
   // without the player searching for their own club
   const known = useTeamById(club ? null : clubId)
+  const [competitionId, setCompetitionId] = useState<number | null>(user?.favouriteCompetitionId ?? null)
+  // leagues only: nobody supports the Coupe de France
+  const { data: championships } = useCompetitions(true)
   const [message, setMessage] = useState<string | null>(null)
 
   const submit = async (event: FormEvent) => {
@@ -31,6 +34,7 @@ export function ProfilePage() {
         displayName,
         country: country || null,
         favouriteClubTeamId: clubId,
+        favouriteCompetitionId: competitionId,
       })
       updateUser(updated)
       setMessage(t('profile.saved'))
@@ -74,6 +78,21 @@ export function ProfilePage() {
             setClubId(picked?.id ?? null)
           }}
         />
+        <label className="block space-y-1">
+          <span className="text-sm text-slate-400">{t('profile.competition')}</span>
+          <select
+            value={competitionId ?? ''}
+            onChange={(e) => setCompetitionId(e.target.value ? Number(e.target.value) : null)}
+            className={inputClass}
+          >
+            <option value="">{t('profile.notSet')}</option>
+            {championships?.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </label>
         <label className="block space-y-1">
           <span className="text-sm text-slate-400">{t('profile.language')}</span>
           <select value={locale} onChange={(e) => setLocale(e.target.value as Locale)} className={inputClass}>

@@ -5,6 +5,8 @@ export interface UserProfile {
   displayName: string
   country: string | null
   favouriteClubTeamId: number | null
+  /** the championship this player follows; independent of the club */
+  favouriteCompetitionId: number | null
   admin: boolean
   /** false until the welcome guide has been finished or skipped */
   guideSeen: boolean
@@ -137,6 +139,7 @@ export interface ScopedTable {
   clubTeamId: number | null
   clubName: string | null
   clubCrestUrl: string | null
+  competitionName: string | null
   table: LeagueTable | null
 }
 

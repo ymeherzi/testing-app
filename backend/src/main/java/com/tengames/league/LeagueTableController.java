@@ -40,6 +40,13 @@ public class LeagueTableController {
         return leagueTableService.clubTable(CurrentUser.id(authentication), Math.max(page, 0), bounded(size));
     }
 
+    @GetMapping("/api/leagues/competition/table")
+    public ScopedTable competitionTable(Authentication authentication,
+                                        @RequestParam(defaultValue = "0") int page,
+                                        @RequestParam(defaultValue = "50") int size) {
+        return leagueTableService.competitionTable(CurrentUser.id(authentication), Math.max(page, 0), bounded(size));
+    }
+
     private static int bounded(int size) {
         return Math.clamp(size, 1, MAX_PAGE_SIZE);
     }

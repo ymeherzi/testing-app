@@ -35,6 +35,7 @@ export function LeaguesPage() {
   const { data: leagues } = useMyLeagues()
   const { data: teams } = useTeams()
   const { data: clubScope } = useScopedTable('club', 0, 1)
+  const { data: competitionScope } = useScopedTable('competition', 0, 1)
   const clubName =
     clubScope?.clubName ??
     teams?.find((t) => t.id === user?.favouriteClubTeamId)?.name ??
@@ -66,6 +67,17 @@ export function LeaguesPage() {
           title={t('leagues.club')}
           subtitle={clubName ? t('leagues.clubSubtitle', { club: clubName }) : t('leagues.clubUnset')}
           disabled={!user?.favouriteClubTeamId}
+        />
+        <Card
+          to="/table/competition"
+          icon="🏆"
+          title={t('leagues.competition')}
+          subtitle={
+            competitionScope?.competitionName
+              ? t('leagues.competitionSubtitle', { competition: competitionScope.competitionName })
+              : t('leagues.competitionUnset')
+          }
+          disabled={!user?.favouriteCompetitionId}
         />
       </section>
 

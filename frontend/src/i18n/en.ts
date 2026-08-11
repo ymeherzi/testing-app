@@ -56,6 +56,10 @@ export const en = {
   'forgot.failed': "That didn't work",
 
   'profile.rules': 'Game rules',
+  'profile.competition': 'Favourite championship',
+  'leagues.competition': 'Championship league',
+  'leagues.competitionSubtitle': 'Everyone following {competition}',
+  'leagues.competitionUnset': 'Pick a championship in Profile to join',
 
   'push.title': 'Round notifications',
   'push.hint': 'A note when a round opens, and a reminder if your card is still empty near kick-off.',
@@ -183,6 +187,7 @@ export const en = {
   'leagues.setAttribute': 'Set your {attribute} in',
   'leagues.attributeCountry': 'country',
   'leagues.attributeClub': 'favourite club',
+  'leagues.attributeCompetition': 'favourite championship',
   'leagues.toEnter': 'to enter this league.',
   'leagues.scored': '{count} scored',
   'leagues.notFound': 'League not found.',

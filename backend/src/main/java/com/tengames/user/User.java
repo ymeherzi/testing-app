@@ -44,6 +44,10 @@ public class User {
     @Column(name = "favourite_club_team_id")
     private Long favouriteClubTeamId;
 
+    /** The championship this player follows; independent of their club. */
+    @Column(name = "favourite_competition_id")
+    private Long favouriteCompetitionId;
+
     @Column(name = "is_admin", nullable = false)
     private boolean admin;
 
@@ -104,6 +108,14 @@ public class User {
     /** Used by a password reset, once the code proved control of the inbox. */
     public void changePassword(String passwordHash) {
         this.passwordHash = passwordHash;
+    }
+
+    public Long getFavouriteCompetitionId() {
+        return favouriteCompetitionId;
+    }
+
+    public void setFavouriteCompetitionId(Long favouriteCompetitionId) {
+        this.favouriteCompetitionId = favouriteCompetitionId;
     }
 
     public boolean isEmailVerified() {

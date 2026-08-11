@@ -51,6 +51,7 @@ export default function App() {
                   <Route path="/table/global" element={<GlobalTablePage />} />
                   <Route path="/table/country" element={<ScopedTablePage kind="country" />} />
                   <Route path="/table/club" element={<ScopedTablePage kind="club" />} />
+                  <Route path="/table/competition" element={<ScopedTablePage kind="competition" />} />
                   <Route path="/table/create" element={<CreateLeaguePage />} />
                   <Route path="/table/join" element={<JoinLeaguePage />} />
                   <Route path="/table/league/:id" element={<PrivateLeaguePage />} />

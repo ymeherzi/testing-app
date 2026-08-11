@@ -54,6 +54,10 @@ export const fr: Messages = {
   'forgot.failed': "Ça n'a pas fonctionné",
 
   'profile.rules': 'Règles du jeu',
+  'profile.competition': 'Championnat favori',
+  'leagues.competition': 'Ligue du championnat',
+  'leagues.competitionSubtitle': 'Tous ceux qui suivent {competition}',
+  'leagues.competitionUnset': 'Choisis un championnat dans Profil pour y entrer',
 
   'push.title': 'Notifications des journées',
   'push.hint': "Un mot à l'ouverture d'une journée, et un rappel si ta grille est encore vide à l'approche du coup d'envoi.",
@@ -181,6 +185,7 @@ export const fr: Messages = {
   'leagues.setAttribute': 'Choisis ton {attribute} dans',
   'leagues.attributeCountry': 'pays',
   'leagues.attributeClub': 'club favori',
+  'leagues.attributeCompetition': 'championnat favori',
   'leagues.toEnter': 'pour entrer dans cette ligue.',
   'leagues.scored': '{count} comptés',
   'leagues.notFound': 'Ligue introuvable.',

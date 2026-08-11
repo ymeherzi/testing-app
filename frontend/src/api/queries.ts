@@ -121,7 +121,7 @@ export function useGlobalTable(page: number, size = 50) {
   })
 }
 
-export function useScopedTable(kind: 'country' | 'club', page: number, size = 50) {
+export function useScopedTable(kind: 'country' | 'club' | 'competition', page: number, size = 50) {
   return useQuery({
     queryKey: ['table', kind, page, size],
     queryFn: () => api<ScopedTable>(`/api/leagues/${kind}/table?page=${page}&size=${size}`),
@@ -185,8 +185,12 @@ export function usePredictMutation(gameweekId: number) {
 
 export function useUpdateProfile() {
   return useMutation({
-    mutationFn: (input: { displayName: string; country: string | null; favouriteClubTeamId: number | null }) =>
-      api<UserProfile>('/api/me', { method: 'PUT', body: JSON.stringify(input) }),
+    mutationFn: (input: {
+      displayName: string
+      country: string | null
+      favouriteClubTeamId: number | null
+      favouriteCompetitionId: number | null
+    }) => api<UserProfile>('/api/me', { method: 'PUT', body: JSON.stringify(input) }),
   })
 }
 

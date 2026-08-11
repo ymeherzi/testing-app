@@ -18,6 +18,7 @@ const player = (guideSeen: boolean): UserProfile => ({
   displayName: 'Player',
   country: 'TN',
   favouriteClubTeamId: null,
+  favouriteCompetitionId: null,
   admin: false,
   guideSeen,
 })

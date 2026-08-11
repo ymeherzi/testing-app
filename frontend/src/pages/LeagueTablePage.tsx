@@ -37,7 +37,7 @@ export function GlobalTablePage() {
   )
 }
 
-export function ScopedTablePage({ kind }: { kind: 'country' | 'club' }) {
+export function ScopedTablePage({ kind }: { kind: 'country' | 'club' | 'competition' }) {
   const t = useT()
   const [page, setPage] = useState(0)
   const { data: scoped } = useScopedTable(kind, page)
@@ -50,7 +50,13 @@ export function ScopedTablePage({ kind }: { kind: 'country' | 'club' }) {
         <BackLink />
         <p className="rounded-2xl border border-dashed border-slate-700 px-4 py-8 text-center text-sm text-slate-400">
           {t('leagues.setAttribute', {
-            attribute: t(kind === 'country' ? 'leagues.attributeCountry' : 'leagues.attributeClub'),
+            attribute: t(
+              kind === 'country'
+                ? 'leagues.attributeCountry'
+                : kind === 'club'
+                  ? 'leagues.attributeClub'
+                  : 'leagues.attributeCompetition',
+            ),
           })}{' '}
           <Link to="/profile" className="text-emerald-400">{t('nav.profile')}</Link>{' '}
           {t('leagues.toEnter')}
@@ -63,7 +69,9 @@ export function ScopedTablePage({ kind }: { kind: 'country' | 'club' }) {
       ? `${countryFlag(scoped.country)} ${t('leagues.countrySubtitle', {
           country: countryName(scoped.country) ?? scoped.country ?? '',
         })}`
-      : `🛡️ ${t('leagues.clubFans', { club: scoped.clubName ?? '' })}`
+      : kind === 'competition'
+        ? `🏆 ${t('leagues.competitionSubtitle', { competition: scoped.competitionName ?? '' })}`
+        : `🛡️ ${t('leagues.clubFans', { club: scoped.clubName ?? '' })}`
   return (
     <div className="space-y-4 p-4">
       <BackLink />

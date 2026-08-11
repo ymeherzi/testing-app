@@ -28,7 +28,8 @@ public class UserController {
     public record UpdateProfileRequest(
             @NotBlank @Size(min = 2, max = 50) String displayName,
             @Pattern(regexp = "[A-Z]{2}", message = "must be an ISO 3166-1 alpha-2 code") String country,
-            Long favouriteClubTeamId) {
+            Long favouriteClubTeamId,
+            Long favouriteCompetitionId) {
     }
 
     @GetMapping
@@ -57,6 +58,7 @@ public class UserController {
         user.setDisplayName(request.displayName());
         user.setCountry(request.country());
         user.setFavouriteClubTeamId(request.favouriteClubTeamId());
+        user.setFavouriteCompetitionId(request.favouriteCompetitionId());
         return UserResponse.from(user);
     }
 }

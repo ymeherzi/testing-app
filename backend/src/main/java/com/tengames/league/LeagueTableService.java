@@ -29,10 +29,10 @@ public class LeagueTableService {
 
     /** Country/club table wrapper; available=false when the caller hasn't set the attribute. */
     public record ScopedTable(boolean available, String country, Long clubTeamId,
-                              String clubName, String clubCrestUrl, Table table) {
+                              String clubName, String clubCrestUrl, String competitionName, Table table) {
 
         static ScopedTable unavailable() {
-            return new ScopedTable(false, null, null, null, null, null);
+            return new ScopedTable(false, null, null, null, null, null, null);
         }
     }
 
@@ -76,7 +76,7 @@ public class LeagueTableService {
         }
         Table table = rankedTable("where u.country = :filter", country, currentUserId, page, size,
                 "select count(*) from users where country = :filter");
-        return new ScopedTable(true, country, null, null, null, table);
+        return new ScopedTable(true, country, null, null, null, null, table);
     }
 
     public ScopedTable clubTable(long currentUserId, int page, int size) {
@@ -94,7 +94,33 @@ public class LeagueTableService {
         }
         Table table = rankedTable("where u.favourite_club_team_id = :filter", club.id(), currentUserId, page, size,
                 "select count(*) from users where favourite_club_team_id = :filter");
-        return new ScopedTable(true, null, club.id(), club.name(), club.crest(), table);
+        return new ScopedTable(true, null, club.id(), club.name(), club.crest(), null, table);
+    }
+
+    /**
+     * Everyone who named the same championship.
+     *
+     * <p>A choice of its own rather than one derived from the favourite club:
+     * deriving it would move a player — and their points — into another table
+     * the day their club is relegated.
+     */
+    public ScopedTable competitionTable(long currentUserId, int page, int size) {
+        record Championship(Long id, String name) {
+        }
+        Championship championship = jdbc.sql("""
+                        select c.id, c.name from users u
+                        join competitions c on c.id = u.favourite_competition_id
+                        where u.id = :id""")
+                .param("id", currentUserId)
+                .query((rs, i) -> new Championship(rs.getLong(1), rs.getString(2)))
+                .optional().orElse(null);
+        if (championship == null) {
+            return ScopedTable.unavailable();
+        }
+        Table table = rankedTable("where u.favourite_competition_id = :filter", championship.id(),
+                currentUserId, page, size,
+                "select count(*) from users where favourite_competition_id = :filter");
+        return new ScopedTable(true, null, null, null, null, championship.name(), table);
     }
 
     private Table rankedTable(String whereClause, Object filter, long currentUserId,

@@ -117,6 +117,7 @@ CI runs both suites on every push (`.github/workflows/ci.yml`).
 | GET | `/api/gameweeks/current`, `/api/gameweeks/{id}` | user |
 | PUT | `/api/gameweeks/{gw}/fixtures/{fx}/prediction` | user (409 when locked) |
 | GET | `/api/leagues/global/table?page&size` | user |
+| GET | `/api/leagues/{country,club,competition}/table` | user |
 | GET | `/api/push/key` | public (the VAPID public key) |
 | GET/POST/DELETE | `/api/push/subscriptions` | user |
 | GET/POST/PUT | `/api/admin/gameweeks…`, `/api/admin/matches`, `/api/admin/sync/fixtures` | admin |
