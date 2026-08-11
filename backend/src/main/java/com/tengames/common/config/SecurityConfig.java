@@ -32,7 +32,7 @@ public class SecurityConfig {
                         // error dispatches must stay open, otherwise a failure on an
                         // anonymous request (bad code, duplicate email) is masked as 401
                         .requestMatchers("/error").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/teams").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/teams", "/api/competitions").permitAll()
                         // the browser needs the application server's public key
                         // before it can ask the player for permission
                         .requestMatchers(HttpMethod.GET, "/api/push/key").permitAll()

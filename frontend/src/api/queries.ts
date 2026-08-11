@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from './client'
 import type { ScoringScale } from '../lib/scoring'
 import type {
+  CompetitionView,
   GameweekSummary,
   GameweekView,
   LeagueDetail,
@@ -70,6 +71,44 @@ export function useTeams() {
   return useQuery({
     queryKey: ['teams'],
     queryFn: () => api<Team[]>('/api/teams'),
+    staleTime: 10 * 60_000,
+  })
+}
+
+/**
+ * Club search, run on the server so it reuses the one place that knows
+ * "atletico" is Atlético and "munich" is München.
+ */
+export function useTeamSearch(query: string, competition: number | null, enabled: boolean) {
+  const params = new URLSearchParams()
+  if (query.trim()) {
+    params.set('q', query.trim())
+  }
+  if (competition) {
+    params.set('competition', String(competition))
+  }
+  return useQuery({
+    queryKey: ['teams', 'search', query.trim(), competition],
+    queryFn: () => api<Team[]>(`/api/teams?${params}`),
+    enabled,
+    staleTime: 60_000,
+  })
+}
+
+/** One club by id, so the profile can show the club already chosen. */
+export function useTeamById(id: number | null) {
+  return useQuery({
+    queryKey: ['teams', 'byId', id],
+    queryFn: async () => (await api<Team[]>(`/api/teams?id=${id}`))[0] ?? null,
+    enabled: id != null && id > 0,
+    staleTime: 10 * 60_000,
+  })
+}
+
+export function useCompetitions(domesticOnly = false) {
+  return useQuery({
+    queryKey: ['competitions', domesticOnly],
+    queryFn: () => api<CompetitionView[]>(`/api/competitions${domesticOnly ? '?domesticOnly=true' : ''}`),
     staleTime: 10 * 60_000,
   })
 }

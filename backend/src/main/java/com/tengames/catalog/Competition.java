@@ -24,6 +24,15 @@ public class Competition {
     @Column(name = "provider_ref", unique = true)
     private String providerRef;
 
+    /**
+     * True for a domestic league. False for the Champions League and the cups,
+     * whose squad lists are full of clubs that belong to a league elsewhere —
+     * stamping from those would make Real Madrid a Champions League club — and
+     * which nobody would name as their favourite championship.
+     */
+    @Column(nullable = false)
+    private boolean domestic = true;
+
     protected Competition() {
     }
 
@@ -43,6 +52,14 @@ public class Competition {
 
     public String getName() {
         return name;
+    }
+
+    public boolean isDomestic() {
+        return domestic;
+    }
+
+    public void setDomestic(boolean domestic) {
+        this.domestic = domestic;
     }
 
     public String getProviderRef() {

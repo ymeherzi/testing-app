@@ -27,6 +27,16 @@ public class Team {
     @Column(name = "provider_ref", unique = true)
     private String providerRef;
 
+    /** Three-letter abbreviation, when the provider gives one: PSG, FCB, MUN. */
+    private String tla;
+
+    /**
+     * The league this club plays in, or null. Null is ordinary: a club that
+     * reached us through a cup tie has no squad list to be stamped from.
+     */
+    @Column(name = "primary_competition_id")
+    private Long primaryCompetitionId;
+
     protected Team() {
     }
 
@@ -63,6 +73,23 @@ public class Team {
 
     public void setCrestUrl(String crestUrl) {
         this.crestUrl = crestUrl;
+    }
+
+    public String getTla() {
+        return tla;
+    }
+
+    public void setTla(String tla) {
+        this.tla = tla;
+    }
+
+    public Long getPrimaryCompetitionId() {
+        return primaryCompetitionId;
+    }
+
+    /** Set from a domestic league's squad list, and only from there. */
+    public void setPrimaryCompetitionId(Long primaryCompetitionId) {
+        this.primaryCompetitionId = primaryCompetitionId;
     }
 
     public String getProviderRef() {

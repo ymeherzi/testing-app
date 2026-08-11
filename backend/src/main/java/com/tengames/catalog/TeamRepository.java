@@ -11,4 +11,6 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
     Optional<Team> findFirstByNameIgnoreCase(String name);
 
     List<Team> findAllByOrderByNameAsc();
+
+    List<Team> findByPrimaryCompetitionIdOrderByNameAsc(Long competitionId);
 }

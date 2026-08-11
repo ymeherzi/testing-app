@@ -1,21 +1,26 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useTeams, useUpdateProfile } from '../api/queries'
+import { useTeamById, useUpdateProfile } from '../api/queries'
 import { useAuth } from '../auth/AuthContext'
+import type { Team } from '../api/types'
 import { countries } from '../lib/countries'
 import { LOCALES, useI18n, type Locale } from '../i18n'
 import { PushOptIn } from '../components/PushOptIn'
+import { ClubPicker } from '../components/ClubPicker'
 
 export function ProfilePage() {
   const { user, logout, updateUser } = useAuth()
   const { t, locale, setLocale } = useI18n()
-  const { data: teams } = useTeams()
   const updateProfile = useUpdateProfile()
   const navigate = useNavigate()
 
   const [displayName, setDisplayName] = useState(user?.displayName ?? '')
   const [country, setCountry] = useState(user?.country ?? '')
-  const [clubId, setClubId] = useState(user?.favouriteClubTeamId?.toString() ?? '')
+  const [club, setClub] = useState<Team | null>(null)
+  const [clubId, setClubId] = useState<number | null>(user?.favouriteClubTeamId ?? null)
+  // the club the account already has, fetched once so the picker can show it
+  // without the player searching for their own club
+  const known = useTeamById(club ? null : clubId)
   const [message, setMessage] = useState<string | null>(null)
 
   const submit = async (event: FormEvent) => {
@@ -25,7 +30,7 @@ export function ProfilePage() {
       const updated = await updateProfile.mutateAsync({
         displayName,
         country: country || null,
-        favouriteClubTeamId: clubId ? Number(clubId) : null,
+        favouriteClubTeamId: clubId,
       })
       updateUser(updated)
       setMessage(t('profile.saved'))
@@ -61,17 +66,14 @@ export function ProfilePage() {
             ))}
           </select>
         </label>
-        <label className="block space-y-1">
-          <span className="text-sm text-slate-400">{t('profile.club')}</span>
-          <select value={clubId} onChange={(e) => setClubId(e.target.value)} className={inputClass}>
-            <option value="">{t('profile.notSet')}</option>
-            {teams?.map((team) => (
-              <option key={team.id} value={team.id}>
-                {team.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        <ClubPicker
+          value={clubId}
+          selected={club ?? known.data ?? null}
+          onChange={(picked) => {
+            setClub(picked)
+            setClubId(picked?.id ?? null)
+          }}
+        />
         <label className="block space-y-1">
           <span className="text-sm text-slate-400">{t('profile.language')}</span>
           <select value={locale} onChange={(e) => setLocale(e.target.value as Locale)} className={inputClass}>

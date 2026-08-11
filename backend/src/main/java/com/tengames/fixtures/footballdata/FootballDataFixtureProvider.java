@@ -110,7 +110,7 @@ public class FootballDataFixtureProvider implements FixtureProvider {
 
         ProviderTeam toProviderTeam() {
             String display = shortName != null ? shortName : name;
-            return new ProviderTeam("fd:team:" + id, name, display, crest);
+            return new ProviderTeam("fd:team:" + id, name, display, crest, tla);
         }
     }
 

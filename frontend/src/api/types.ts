@@ -28,6 +28,17 @@ export interface Team {
   name: string
   shortName: string | null
   crestUrl: string | null
+  /** three-letter abbreviation (PSG, FCB), when the provider gives one */
+  tla?: string | null
+  /** the league this club plays in; null for a club we only met in a cup */
+  competitionId?: number | null
+}
+
+export interface CompetitionView {
+  id: number
+  code: string
+  name: string
+  domestic: boolean
 }
 
 export interface PredictionView {

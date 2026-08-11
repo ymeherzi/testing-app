@@ -69,10 +69,35 @@ public final class ClubNames {
     private ClubNames() {
     }
 
+    /**
+     * Every spelling that leads to this club, canonical form first.
+     *
+     * <p>Substring matching on the canonical key alone cannot bridge München
+     * and Munich: someone typing "munich" is looking for the club
+     * football-data calls "FC Bayern München". The alias table already knows
+     * both spellings, so searching looks through all of them rather than
+     * carrying a second list for the search box.
+     */
+    public static java.util.List<String> spellings(String clubName) {
+        String canonical = key(clubName);
+        java.util.List<String> all = new java.util.ArrayList<>();
+        all.add(canonical);
+        ALIASES.forEach((alternative, target) -> {
+            if (target.equals(canonical)) {
+                all.add(alternative);
+            }
+        });
+        return all;
+    }
+
     public static String key(String clubName) {
         String stripped = Normalizer.normalize(clubName == null ? "" : clubName, Normalizer.Form.NFD)
                 .replaceAll("\\p{M}", "")
-                .toLowerCase(Locale.ROOT);
+                .toLowerCase(Locale.ROOT)
+                // ß survives NFD and would otherwise be wiped by the punctuation
+                // pass, turning Preußen into "preu en" — unfindable either way
+                // it is typed
+                .replace("\u00df", "ss");
         stripped = stripped.replaceAll("\\b(fc|cf|ac|as|ss|sc|ssc|afc|rc|cd|ud|club|calcio|de|di|del|of)\\b", " ");
         stripped = stripped.replaceAll("[^a-z0-9 ]", " ").replaceAll("\\s+", " ").trim();
         return ALIASES.getOrDefault(stripped, stripped);

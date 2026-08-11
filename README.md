@@ -111,7 +111,8 @@ CI runs both suites on every push (`.github/workflows/ci.yml`).
 | Method | Path | Auth |
 |---|---|---|
 | POST | `/api/auth/signup`, `/api/auth/login` | public |
-| GET | `/api/teams` | public |
+| GET | `/api/teams?q=&competition=&id=&limit=` | public (club search) |
+| GET | `/api/competitions?domesticOnly=` | public |
 | GET/PUT | `/api/me` | user |
 | GET | `/api/gameweeks/current`, `/api/gameweeks/{id}` | user |
 | PUT | `/api/gameweeks/{gw}/fixtures/{fx}/prediction` | user (409 when locked) |

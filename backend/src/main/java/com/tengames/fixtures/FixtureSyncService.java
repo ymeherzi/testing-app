@@ -119,7 +119,14 @@ public class FixtureSyncService {
         int teamCount = 0;
         if (includeTeams) {
             for (ProviderTeam providerTeam : provider.fetchTeams(competition.getProviderRef())) {
-                teamsByRef.put(providerTeam.providerRef(), upsertTeam(providerTeam));
+                Team team = upsertTeam(providerTeam);
+                if (competition.isDomestic()) {
+                    // this list is the definition of "the clubs in this league
+                    // this season"; a cup's list would overwrite it with clubs
+                    // that belong somewhere else
+                    team.setPrimaryCompetitionId(competition.getId());
+                }
+                teamsByRef.put(providerTeam.providerRef(), team);
                 teamCount++;
             }
         }
@@ -138,6 +145,9 @@ public class FixtureSyncService {
         team.setName(providerTeam.name());
         team.setShortName(providerTeam.shortName());
         team.setCrestUrl(providerTeam.crestUrl());
+        if (providerTeam.tla() != null) {
+            team.setTla(providerTeam.tla());
+        }
         return team;
     }
 

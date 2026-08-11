@@ -90,6 +90,6 @@ public class SeedFixtureProvider implements FixtureProvider {
 
     private ProviderTeam team(String name) {
         String slug = name.toLowerCase().replaceAll("[^a-z0-9]+", "-");
-        return new ProviderTeam("seed:team:" + slug, name, name, null);
+        return new ProviderTeam("seed:team:" + slug, name, name, null, null);
     }
 }
