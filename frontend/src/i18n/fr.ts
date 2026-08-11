@@ -70,6 +70,18 @@ export const fr: Messages = {
 
   'predict.previewRound': 'Journée blanche — les points s\'affichent mais ne comptent pas au classement',
 
+  'admin.compose': 'Composer',
+  'admin.composing': 'Composition…',
+  'admin.composeFailed': "Ça n'a pas fonctionné",
+  'admin.replace': 'Remplacer',
+  'admin.choose': 'Choisir',
+  'admin.pickReplacement': 'Choisis un remplaçant',
+  'admin.noAlternatives': 'Aucun autre match sur cette période',
+  'admin.warmUp': 'Journée blanche — ne compte pas',
+  'admin.advanced': 'Outils avancés',
+  'admin.roundZero': 'Journée 0 — blanche, 15-16 août',
+  'admin.roundOne': 'Journée 1 — 21 août',
+
   'rules.title': 'Règles du jeu',
   'rules.scoringTitle': 'Comment on marque',
   'rules.tierExact': 'Score exact',

@@ -9,6 +9,7 @@ import type {
   LeagueTable,
   MatchView,
   PlayerGameweekView,
+  SuggestionView,
   ScopedTable,
   Team,
   UserProfile,
@@ -168,6 +169,16 @@ export function useAdminMatchPool(enabled: boolean) {
   })
 }
 
+/** Ranked alternatives for a window, so a swap is a choice, not a search. */
+export function useAdminSuggestions(from: string, to: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ['admin', 'suggestions', from, to],
+    queryFn: () =>
+      api<SuggestionView[]>(`/api/admin/gameweeks/suggestions?from=${from}&to=${to}&size=40`),
+    enabled,
+  })
+}
+
 export function useAdminActions() {
   const queryClient = useQueryClient()
   const invalidate = () => {
@@ -181,6 +192,17 @@ export function useAdminActions() {
       windowStart: string
       windowEnd: string
     }) => api<GameweekView>('/api/admin/gameweeks', { method: 'POST', body: JSON.stringify(input) }),
+    onSettled: invalidate,
+  })
+  const composeGameweek = useMutation({
+    mutationFn: (input: {
+      season: string
+      weekIndex: number
+      windowStart: string
+      windowEnd: string
+      countsTowardsTable: boolean
+      size: number
+    }) => api<GameweekView>('/api/admin/gameweeks/compose', { method: 'POST', body: JSON.stringify(input) }),
     onSettled: invalidate,
   })
   const setFixtures = useMutation({
@@ -208,5 +230,5 @@ export function useAdminActions() {
       }),
     onSettled: invalidate,
   })
-  return { createGameweek, setFixtures, publish, sync, simulateResult }
+  return { createGameweek, composeGameweek, setFixtures, publish, sync, simulateResult }
 }

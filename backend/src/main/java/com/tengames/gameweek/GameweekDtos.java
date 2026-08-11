@@ -25,7 +25,7 @@ public final class GameweekDtos {
         }
     }
 
-    public record FixtureView(Long fixtureId, String competitionCode, String competitionName,
+    public record FixtureView(Long fixtureId, Long matchId, String competitionCode, String competitionName,
                               TeamView homeTeam, TeamView awayTeam, Instant kickoffUtc, String matchStatus,
                               Integer homeScore, Integer awayScore, boolean locked, PredictionView prediction) {
 
@@ -33,6 +33,9 @@ public final class GameweekDtos {
             Match match = fixture.getMatch();
             return new FixtureView(
                     fixture.getId(),
+                    // the admin swaps a fixture by sending the replacement match,
+                    // so the card has to say which match each slot holds
+                    match.getId(),
                     match.getCompetition().getCode(),
                     match.getCompetition().getName(),
                     TeamView.from(match.getHomeTeam()),

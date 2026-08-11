@@ -38,6 +38,8 @@ export interface PredictionView {
 
 export interface FixtureView {
   fixtureId: number
+  /** the underlying match, needed when an admin swaps this slot */
+  matchId: number
   competitionCode: string
   competitionName: string
   homeTeam: Team
@@ -155,4 +157,11 @@ export interface LeagueDetail {
   maxMembers: number
   members: MemberEntry[]
   me: MemberEntry | null
+}
+
+/** A proposed fixture with the reason the suggester picked it. */
+export interface SuggestionView {
+  match: MatchView
+  score: number
+  reasons: string[]
 }

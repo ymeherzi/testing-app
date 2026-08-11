@@ -70,6 +70,28 @@ public class AdminGameweekController {
     public record SuggestionView(MatchView match, int score, List<String> reasons) {
     }
 
+    public record ComposeRequest(
+            @NotBlank String season,
+            @Min(1) int weekIndex,
+            Gameweek.Type type,
+            @NotNull Instant windowStart,
+            @NotNull Instant windowEnd,
+            Boolean countsTowardsTable,
+            Integer size) {
+
+        public ComposeRequest {
+            if (type == null) {
+                type = Gameweek.Type.WEEKEND;
+            }
+            if (countsTowardsTable == null) {
+                countsTowardsTable = true;
+            }
+            if (size == null || size < 1) {
+                size = 10;
+            }
+        }
+    }
+
     @GetMapping("/gameweeks")
     public List<GameweekView> listGameweeks() {
         return gameweekService.listAll();
@@ -101,6 +123,32 @@ public class AdminGameweekController {
         return FixtureSuggester.suggest(pool, size).stream()
                 .map(s -> new SuggestionView(MatchView.from(s.match()), s.score(), s.reasons()))
                 .toList();
+    }
+
+    /**
+     * Creates a round and fills it with the proposed card in one call.
+     *
+     * <p>Building a gameweek by hand meant scrolling the whole calendar,
+     * ticking boxes and picking a target from a dropdown — a lot of steps for
+     * a weekly chore. The result is still a draft: the editor swaps whatever
+     * they disagree with before publishing.
+     */
+    @PostMapping("/gameweeks/compose")
+    @Transactional
+    public GameweekView compose(@Valid @RequestBody ComposeRequest request) {
+        List<com.tengames.catalog.Match> pool = matches.findByKickoffUtcBetweenOrderByKickoffUtcAsc(
+                request.windowStart(), request.windowEnd());
+        if (pool.isEmpty()) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST,
+                    "No fixtures in that window — sync fixtures first");
+        }
+        GameweekView draft = gameweekService.createDraft(request.season(), request.weekIndex(), request.type(),
+                request.windowStart(), request.windowEnd(), request.countsTowardsTable());
+        List<Long> matchIds = FixtureSuggester.suggest(pool, request.size()).stream()
+                .map(s -> s.match().getId())
+                .toList();
+        return gameweekService.setFixtures(draft.id(), matchIds);
     }
 
     @PutMapping("/gameweeks/{id}/fixtures")

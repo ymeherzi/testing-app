@@ -72,6 +72,18 @@ export const en = {
 
   'predict.previewRound': 'Warm-up round — points shown, not counted in the table',
 
+  'admin.compose': 'Compose',
+  'admin.composing': 'Composing…',
+  'admin.composeFailed': "That didn't work",
+  'admin.replace': 'Replace',
+  'admin.choose': 'Choose',
+  'admin.pickReplacement': 'Pick a replacement',
+  'admin.noAlternatives': 'No other fixture in this window',
+  'admin.warmUp': 'Warm-up — not counted',
+  'admin.advanced': 'Advanced tools',
+  'admin.roundZero': 'Round 0 — warm-up, 15-16 August',
+  'admin.roundOne': 'Round 1 — 21 August',
+
   'rules.title': 'Game rules',
   'rules.scoringTitle': 'How points work',
   'rules.tierExact': 'Exact scoreline',

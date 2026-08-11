@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useAdminActions, useAdminGameweeks, useAdminMatchPool } from '../api/queries'
+import { RoundComposer, type RoundSpec } from '../components/RoundComposer'
 import type { MatchView } from '../api/types'
 import { kickoffTimeLabel, kickoffDayLabel } from '../lib/format'
 import { useT } from '../i18n'
@@ -57,6 +58,30 @@ export function AdminPage() {
     })
   }
 
+  // The two rounds that have to exist before the season opens. Kept here
+  // rather than typed in every week: composing them is the whole job, and a
+  // wrong date silently produces an empty card.
+  const rounds: RoundSpec[] = [
+    {
+      title: t('admin.roundZero'),
+      season: '2026-27',
+      weekIndex: 0,
+      from: '2026-08-15',
+      to: '2026-08-16',
+      countsTowardsTable: false,
+    },
+    {
+      title: t('admin.roundOne'),
+      season: '2026-27',
+      weekIndex: 1,
+      from: '2026-08-21',
+      to: '2026-08-23',
+      countsTowardsTable: true,
+    },
+  ]
+  const roundFor = (spec: RoundSpec) =>
+    gameweeks?.find((gw) => gw.season === spec.season && gw.weekIndex === spec.weekIndex)
+
   const inputClass =
     'rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-emerald-500'
 
@@ -74,6 +99,16 @@ export function AdminPage() {
       </header>
 
       {message && <p className="rounded-lg bg-slate-800/80 px-3 py-2 text-sm text-slate-200">{message}</p>}
+
+      {rounds.map((spec) => (
+        <RoundComposer key={`${spec.season}-${spec.weekIndex}`} spec={spec} existing={roundFor(spec)} />
+      ))}
+
+      <details className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
+        <summary className="cursor-pointer text-sm font-semibold text-slate-300">
+          {t('admin.advanced')}
+        </summary>
+        <div className="mt-4 space-y-6">
 
       <section className="space-y-2">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">{t('admin.gameweeks')}</h2>
@@ -185,6 +220,8 @@ export function AdminPage() {
           {t('admin.resultHint')}
         </p>
       </section>
+        </div>
+      </details>
     </div>
   )
 }
