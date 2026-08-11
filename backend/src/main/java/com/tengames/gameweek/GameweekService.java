@@ -162,8 +162,27 @@ public class GameweekService {
 
     // --- admin operations ---
 
-    @Transactional
+    /**
+     * The draft for a season and round number, if one is already there.
+     *
+     * <p>Composing twice is normal — an empty draft from a first attempt is
+     * exactly what an editor finds. Refusing a round that has already been
+     * published is not pedantry: players may have predicted on it.
+     */
+    @Transactional(readOnly = true)
+    public java.util.Optional<GameweekView> findDraft(String season, int weekIndex) {
+        return gameweeks.findBySeasonAndWeekIndex(season, weekIndex)
+                .map(gameweek -> {
+                    if (gameweek.getStatus() != Gameweek.Status.DRAFT) {
+                        throw new ResponseStatusException(HttpStatus.CONFLICT,
+                                "Round %d of %s is already published".formatted(weekIndex, season));
+                    }
+                    return viewForAdmin(gameweek);
+                });
+    }
+
     /** An ordinary round, counting towards the season standings. */
+    @Transactional
     public GameweekView createDraft(String season, int weekIndex, Gameweek.Type type,
                                     Instant windowStart, Instant windowEnd) {
         return createDraft(season, weekIndex, type, windowStart, windowEnd, true);

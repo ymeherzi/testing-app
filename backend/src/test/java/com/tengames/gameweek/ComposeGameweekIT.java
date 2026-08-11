@@ -74,11 +74,15 @@ class ComposeGameweekIT {
     }
 
     private String composeBody(String season, boolean counts, int size) {
+        return composeBody(season, 1, counts, size);
+    }
+
+    private String composeBody(String season, int weekIndex, boolean counts, int size) {
         Instant from = Instant.now().minus(Duration.ofDays(1));
         Instant to = Instant.now().plus(Duration.ofDays(6));
         return """
-                {"season":"%s","weekIndex":1,"windowStart":"%s","windowEnd":"%s",
-                 "countsTowardsTable":%s,"size":%d}""".formatted(season, from, to, counts, size);
+                {"season":"%s","weekIndex":%d,"windowStart":"%s","windowEnd":"%s",
+                 "countsTowardsTable":%s,"size":%d}""".formatted(season, weekIndex, from, to, counts, size);
     }
 
     private JsonNode compose(String body) throws Exception {
@@ -125,6 +129,42 @@ class ComposeGameweekIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void aWarmUpRoundCanBeNumberedZero() throws Exception {
+        // the warm-up is called "Round 0" in the app, and @Min(1) rejected it
+        // before it ever reached the service — every earlier test used 1
+        JsonNode gameweek = compose(composeBody("9980-85", 0, false, 10));
+
+        assertThat(gameweek.get("weekIndex").asInt()).isZero();
+        assertThat(gameweek.get("fixtures")).hasSize(10);
+    }
+
+    @Test
+    void composingTwiceFillsTheSameDraftRatherThanFailing() throws Exception {
+        JsonNode first = compose(composeBody("9980-86", 2, true, 10));
+        JsonNode second = compose(composeBody("9980-86", 2, true, 10));
+
+        // season + week index are unique; an empty draft from a first attempt
+        // is the normal state to find, not an error
+        assertThat(second.get("id").asLong()).isEqualTo(first.get("id").asLong());
+        assertThat(second.get("fixtures")).hasSize(10);
+    }
+
+    @Test
+    void aBadRequestSaysWhichFieldIsWrong() throws Exception {
+        String body = composeBody("", 1, true, 10);
+
+        String response = mockMvc.perform(post("/api/admin/gameweeks/compose")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andReturn().getResponse().getContentAsString();
+
+        // a bare "Validation failed" tells the editor nothing
+        assertThat(objectMapper.readTree(response).get("detail").asText()).contains("season");
     }
 
     @Test

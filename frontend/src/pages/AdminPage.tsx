@@ -190,29 +190,35 @@ export function AdminPage() {
           {pool?.map((match) => (
             <label
               key={match.id}
-              className="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-900 px-4 py-2.5 text-sm"
+              className="block rounded-xl border border-slate-800 bg-slate-900 px-4 py-2.5 text-sm"
             >
-              <input type="checkbox" checked={selection.has(match.id)} onChange={() => toggle(match.id)}
-                     className="size-4 accent-emerald-500" />
-              <span className="w-10 text-xs font-semibold text-slate-500">{match.competitionCode}</span>
-              <span className="min-w-0 flex-1 truncate">{matchLabel(match)}</span>
-              <span className="text-xs text-slate-400">
-                {kickoffDayLabel(match.kickoffUtc)} {kickoffTimeLabel(match.kickoffUtc)}
+              <span className="flex items-start gap-3">
+                <input type="checkbox" checked={selection.has(match.id)} onChange={() => toggle(match.id)}
+                       className="mt-0.5 size-4 shrink-0 accent-emerald-500" />
+                {/* the fixture gets its own line: squeezed onto one row with the
+                    date and the simulator, the names collapsed to nothing */}
+                <span className="min-w-0 flex-1 font-semibold">{matchLabel(match)}</span>
               </span>
-              {match.status === 'FINISHED' ? (
-                <span className="text-xs font-semibold text-slate-300">
-                  {match.homeScore}-{match.awayScore}
+              <span className="mt-1 flex items-center justify-between gap-2 pl-7">
+                <span className="text-xs text-slate-400">
+                  {match.competitionCode} · {kickoffDayLabel(match.kickoffUtc)}{' '}
+                  {kickoffTimeLabel(match.kickoffUtc)}
                 </span>
-              ) : (
-                <SimulateResult
-                  onSubmit={(home, away) =>
-                    run(
-                      () => simulateResult.mutateAsync({ matchId: match.id, homeScore: home, awayScore: away }),
-                      t('admin.resultSet', { match: matchLabel(match) }),
-                    )
-                  }
-                />
-              )}
+                {match.status === 'FINISHED' ? (
+                  <span className="text-xs font-semibold text-slate-300">
+                    {match.homeScore}-{match.awayScore}
+                  </span>
+                ) : (
+                  <SimulateResult
+                    onSubmit={(home, away) =>
+                      run(
+                        () => simulateResult.mutateAsync({ matchId: match.id, homeScore: home, awayScore: away }),
+                        t('admin.resultSet', { match: matchLabel(match) }),
+                      )
+                    }
+                  />
+                )}
+              </span>
             </label>
           ))}
         </div>

@@ -108,7 +108,7 @@ export function RoundComposer({ spec, existing }: { spec: RoundSpec; existing?: 
             </span>
           )}
         </div>
-        {!existing ? (
+        {!existing || existing.fixtures.length === 0 ? (
           <button
             type="button"
             onClick={compose}

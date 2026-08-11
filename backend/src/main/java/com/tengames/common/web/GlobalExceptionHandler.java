@@ -22,6 +22,11 @@ public class GlobalExceptionHandler {
             errors.putIfAbsent(error.getField(), error.getDefaultMessage());
         }
         problem.setProperty("errors", errors);
+        // Clients show `detail`; without it the caller gets a bare "Validation
+        // failed" and no idea which field to fix.
+        problem.setDetail(errors.entrySet().stream()
+                .map(entry -> entry.getKey() + ": " + entry.getValue())
+                .collect(java.util.stream.Collectors.joining("; ")));
         return problem;
     }
 

@@ -46,7 +46,7 @@ public class AdminGameweekController {
      */
     public record CreateGameweekRequest(
             @NotBlank String season,
-            @Min(1) int weekIndex,
+            @Min(0) int weekIndex,
             Gameweek.Type type,
             @NotNull Instant windowStart,
             @NotNull Instant windowEnd,
@@ -72,7 +72,7 @@ public class AdminGameweekController {
 
     public record ComposeRequest(
             @NotBlank String season,
-            @Min(1) int weekIndex,
+            @Min(0) int weekIndex,
             Gameweek.Type type,
             @NotNull Instant windowStart,
             @NotNull Instant windowEnd,
@@ -143,12 +143,16 @@ public class AdminGameweekController {
                     org.springframework.http.HttpStatus.BAD_REQUEST,
                     "No fixtures in that window — sync fixtures first");
         }
-        GameweekView draft = gameweekService.createDraft(request.season(), request.weekIndex(), request.type(),
-                request.windowStart(), request.windowEnd(), request.countsTowardsTable());
+        // Season and week index are unique, and an empty draft from an earlier
+        // attempt is the normal state to find here. Fill it rather than fail.
+        GameweekView round = gameweekService.findDraft(request.season(), request.weekIndex())
+                .orElseGet(() -> gameweekService.createDraft(request.season(), request.weekIndex(),
+                        request.type(), request.windowStart(), request.windowEnd(),
+                        request.countsTowardsTable()));
         List<Long> matchIds = FixtureSuggester.suggest(pool, request.size()).stream()
                 .map(s -> s.match().getId())
                 .toList();
-        return gameweekService.setFixtures(draft.id(), matchIds);
+        return gameweekService.setFixtures(round.id(), matchIds);
     }
 
     @PutMapping("/gameweeks/{id}/fixtures")

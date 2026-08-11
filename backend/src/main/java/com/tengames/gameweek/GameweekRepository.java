@@ -9,6 +9,8 @@ public interface GameweekRepository extends JpaRepository<Gameweek, Long> {
 
     Optional<Gameweek> findFirstByStatusInOrderByWindowStartDesc(Collection<Gameweek.Status> statuses);
 
+    Optional<Gameweek> findBySeasonAndWeekIndex(String season, int weekIndex);
+
     /** The gameweek that is current or next relative to the given instant. */
     Optional<Gameweek> findFirstByWindowEndAfterOrderByWindowStartAsc(Instant now);
 }
