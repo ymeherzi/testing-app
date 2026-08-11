@@ -1,11 +1,13 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useTeams } from '../api/queries'
+import { useCompetitions } from '../api/queries'
 import { ApiError } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
+import type { Team } from '../api/types'
 import { countries } from '../lib/countries'
 import { peekPendingInvite } from '../lib/invite'
 import { useT } from '../i18n'
+import { ClubPicker } from '../components/ClubPicker'
 import { VerifyCodeForm } from '../auth/VerifyCodeForm'
 import { GoogleSignInButton } from '../auth/GoogleSignInButton'
 
@@ -13,12 +15,14 @@ export function SignupPage() {
   const { signup } = useAuth()
   const t = useT()
   const navigate = useNavigate()
-  const { data: teams } = useTeams()
+  // leagues only: nobody supports a cup
+  const { data: championships } = useCompetitions(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [country, setCountry] = useState('')
-  const [clubId, setClubId] = useState('')
+  const [club, setClub] = useState<Team | null>(null)
+  const [competitionId, setCompetitionId] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [pendingEmail, setPendingEmail] = useState<string | null>(null)
@@ -33,7 +37,8 @@ export function SignupPage() {
         password,
         displayName,
         country: country || null,
-        favouriteClubTeamId: clubId ? Number(clubId) : null,
+        favouriteClubTeamId: club?.id ?? null,
+        favouriteCompetitionId: competitionId,
       })
       if (outcome.signedIn) {
         navigate('/')
@@ -85,11 +90,21 @@ export function SignupPage() {
             </option>
           ))}
         </select>
-        <select value={clubId} onChange={(e) => setClubId(e.target.value)} className={inputClass}>
-          <option value="">{t('auth.clubOptional')}</option>
-          {teams?.map((team) => (
-            <option key={team.id} value={team.id}>
-              {team.name}
+        <ClubPicker
+          value={club?.id ?? null}
+          selected={club}
+          onChange={setClub}
+          label={t('auth.clubOptional')}
+        />
+        <select
+          value={competitionId ?? ''}
+          onChange={(e) => setCompetitionId(e.target.value ? Number(e.target.value) : null)}
+          className={inputClass}
+        >
+          <option value="">{t('auth.competitionOptional')}</option>
+          {championships?.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
             </option>
           ))}
         </select>

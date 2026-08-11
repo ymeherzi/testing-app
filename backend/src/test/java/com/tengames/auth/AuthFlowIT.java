@@ -73,6 +73,12 @@ class AuthFlowIT {
     @Autowired
     private CapturingMailSender mail;
 
+    @Autowired
+    private com.tengames.catalog.TeamRepository teams;
+
+    @Autowired
+    private com.tengames.catalog.CompetitionRepository competitions;
+
     private JsonNode call(String path, String body, int expectedStatus) throws Exception {
         MvcResult result = mockMvc.perform(post(path).contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().is(expectedStatus))
@@ -188,6 +194,38 @@ class AuthFlowIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.displayName").value("Alexandra"))
                 .andExpect(jsonPath("$.country").value("TN"));
+    }
+
+    @Test
+    void signingUpCarriesTheClubAndTheChampionship() throws Exception {
+        // the invite link lands on signup, and this is the one moment a new
+        // player fills these in — both put them straight into a public league
+        Long club = teams.save(new com.tengames.catalog.Team("Signup FC", "Signup FC", null,
+                "signup:" + java.util.UUID.randomUUID())).getId();
+        Long championship = competitions.findByCode("PL").orElseThrow().getId();
+        call("/api/auth/signup", """
+                {"email": "fan@example.com", "password": "correct-horse", "displayName": "Fan",
+                 "country": "FR", "favouriteClubTeamId": %d, "favouriteCompetitionId": %d}
+                """.formatted(club, championship), 200);
+        JsonNode verified = call("/api/auth/verify", """
+                {"email": "fan@example.com", "code": "%s", "rememberDevice": false}
+                """.formatted(mail.latestCode()), 200);
+
+        mockMvc.perform(get("/api/me").header("Authorization", "Bearer " + verified.get("token").asText()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.favouriteClubTeamId").value(club))
+                .andExpect(jsonPath("$.favouriteCompetitionId").value(championship));
+    }
+
+    @Test
+    void bothAreOptional() throws Exception {
+        // country, club and championship have always been skippable, and the
+        // longer the form the more people stop halfway
+        String token = signupAndVerify("plain@example.com", false);
+
+        mockMvc.perform(get("/api/me").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.favouriteCompetitionId").doesNotExist());
     }
 
     @Test

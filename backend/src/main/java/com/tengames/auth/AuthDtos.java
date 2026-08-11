@@ -16,7 +16,9 @@ public final class AuthDtos {
             @NotBlank @Size(min = 8, max = 72) String password,
             @NotBlank @Size(min = 2, max = 50) String displayName,
             @Pattern(regexp = "[A-Z]{2}", message = "must be an ISO 3166-1 alpha-2 code") String country,
-            Long favouriteClubTeamId) {
+            Long favouriteClubTeamId,
+            /** Both optional, and both a public league the account joins on the spot. */
+            Long favouriteCompetitionId) {
     }
 
     public record LoginRequest(

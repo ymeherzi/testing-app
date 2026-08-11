@@ -28,6 +28,7 @@ export interface SignupInput {
   displayName: string
   country: string | null
   favouriteClubTeamId: number | null
+  favouriteCompetitionId: number | null
 }
 
 const AuthContext = createContext<AuthState | null>(null)

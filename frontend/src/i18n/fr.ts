@@ -30,7 +30,7 @@ export const fr: Messages = {
   'auth.createAccount': 'Créer un compte',
   'auth.alreadyPlaying': 'Déjà inscrit ?',
   'auth.signupTitle': 'Rejoins Ten Games',
-  'auth.signupSubtitle': 'Ton pays et ton club te placent directement dans leurs ligues publiques.',
+  'auth.signupSubtitle': 'Ton pays, ton club et ton championnat te placent directement dans leurs ligues publiques.',
   'auth.signupSubmit': 'Commencer à pronostiquer',
   'auth.signupPending': 'Création du compte…',
   'auth.loginFailed': 'Échec de la connexion',
@@ -128,6 +128,7 @@ export const fr: Messages = {
   'verify.resent': 'Un nouveau code arrive.',
   'verify.failed': "Ce code n'a pas fonctionné",
   'auth.clubOptional': 'Club favori (facultatif)',
+  'auth.competitionOptional': 'Championnat favori (facultatif)',
 
   'predict.title': 'Journée {index}',
   'predict.progress': '{predicted}/{total} pronostics saisis',

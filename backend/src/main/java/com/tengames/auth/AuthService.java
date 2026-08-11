@@ -44,6 +44,9 @@ public class AuthService {
         }
         User user = new User(request.email(), passwordEncoder.encode(request.password()),
                 request.displayName(), request.country(), request.favouriteClubTeamId());
+        // signing up is the one moment a player fills these in willingly, and
+        // both put them in a league without another thought
+        user.setFavouriteCompetitionId(request.favouriteCompetitionId());
         users.save(user);
         verification.sendCode(user, AuthCode.Purpose.VERIFY_EMAIL);
         return AuthResponse.codeSent(user.getEmail());

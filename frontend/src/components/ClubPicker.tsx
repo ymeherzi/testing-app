@@ -17,11 +17,14 @@ export function ClubPicker({
   value,
   selected,
   onChange,
+  label,
 }: {
   value: number | null
   /** The chosen club as we know it, so it can be shown without searching for it. */
   selected: Team | null
   onChange: (club: Team | null) => void
+  /** Signing up says "(optional)" like the fields around it; the profile does not. */
+  label?: string
 }) {
   const t = useT()
   const [query, setQuery] = useState('')
@@ -37,7 +40,7 @@ export function ClubPicker({
 
   return (
     <div className="space-y-2">
-      <span className="text-sm text-slate-400">{t('profile.club')}</span>
+      <span className="text-sm text-slate-400">{label ?? t('profile.club')}</span>
 
       {/* the current choice, always visible, whatever the filter says */}
       <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-700 bg-slate-900 px-4 py-3">

@@ -33,7 +33,7 @@ export const en = {
   'auth.createAccount': 'Create an account',
   'auth.alreadyPlaying': 'Already playing?',
   'auth.signupTitle': 'Join Ten Games',
-  'auth.signupSubtitle': 'Your country and club drop you straight into their public leagues.',
+  'auth.signupSubtitle': 'Your country, club and championship drop you straight into their public leagues.',
   'auth.signupSubmit': 'Start predicting',
   'auth.signupPending': 'Creating account…',
   'auth.loginFailed': 'Login failed',
@@ -130,6 +130,7 @@ export const en = {
   'verify.resent': 'A new code is on its way.',
   'verify.failed': 'That code did not work',
   'auth.clubOptional': 'Favourite club (optional)',
+  'auth.competitionOptional': 'Favourite championship (optional)',
 
   'predict.title': 'Gameweek {index}',
   'predict.progress': '{predicted}/{total} predictions in',
