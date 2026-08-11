@@ -58,6 +58,10 @@ public class FixtureSyncService {
         return syncAll(today.minusDays(7), today.plusDays(30));
     }
 
+    public SyncSummary syncAll(LocalDate from, LocalDate to) {
+        return syncAll(from, to, true);
+    }
+
     /**
      * Syncs every provider-backed competition, one at a time.
      *
@@ -69,7 +73,17 @@ public class FixtureSyncService {
      * Champions out of the pool entirely. One competition failing now costs
      * that competition and nothing else.
      */
-    public SyncSummary syncAll(LocalDate from, LocalDate to) {
+    /**
+     * @param includeTeams whether to pull each competition's squad list too.
+     *                     It doubles the number of calls, and the free tier
+     *                     allows ten a minute: with a dozen competitions that
+     *                     is the difference between a one-minute sync and a
+     *                     three-minute one. Fixtures already carry their two
+     *                     clubs and their crests, so this is only needed to
+     *                     keep the club list complete for the profile picker —
+     *                     once a day is plenty.
+     */
+    public SyncSummary syncAll(LocalDate from, LocalDate to, boolean includeTeams) {
         int teamCount = 0;
         int matchCount = 0;
         java.util.List<String> failed = new java.util.ArrayList<>();
@@ -80,8 +94,8 @@ public class FixtureSyncService {
             try {
                 // an explicit transaction, not @Transactional: this is a call
                 // from inside the bean, which never reaches the proxy
-                SyncSummary summary = competitionTx.execute(status ->
-                        syncCompetition(competitions.findById(competition.getId()).orElseThrow(), from, to));
+                SyncSummary summary = competitionTx.execute(status -> syncCompetition(
+                        competitions.findById(competition.getId()).orElseThrow(), from, to, includeTeams));
                 teamCount += summary.teamsUpserted();
                 matchCount += summary.matchesUpserted();
             } catch (RuntimeException e) {
@@ -99,12 +113,15 @@ public class FixtureSyncService {
     }
 
     /** One competition; the caller runs it in a transaction of its own. */
-    private SyncSummary syncCompetition(Competition competition, LocalDate from, LocalDate to) {
+    private SyncSummary syncCompetition(Competition competition, LocalDate from, LocalDate to,
+                                        boolean includeTeams) {
         Map<String, Team> teamsByRef = new HashMap<>();
         int teamCount = 0;
-        for (ProviderTeam providerTeam : provider.fetchTeams(competition.getProviderRef())) {
-            teamsByRef.put(providerTeam.providerRef(), upsertTeam(providerTeam));
-            teamCount++;
+        if (includeTeams) {
+            for (ProviderTeam providerTeam : provider.fetchTeams(competition.getProviderRef())) {
+                teamsByRef.put(providerTeam.providerRef(), upsertTeam(providerTeam));
+                teamCount++;
+            }
         }
         int matchCount = 0;
         for (ProviderMatch providerMatch : provider.fetchMatches(competition.getProviderRef(), from, to)) {

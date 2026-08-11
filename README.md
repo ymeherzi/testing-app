@@ -59,9 +59,26 @@ housekeeping: one 429 used to abort the run, roll back everything already
 fetched, and skip the cup import that followed, which is how the season's
 opening finals went missing with no error anyone would notice.
 
-Cups the free tier omits (Community Shield, Trophée des Champions) come from
-ESPN's public API, and are imported **before** the league sync for the same
-reason.
+Competitions the free tier omits come from ESPN's public API, and are
+imported **before** the league sync for the same reason: the two super cups,
+the six domestic cups of the big five, and the Belgian and Scottish leagues —
+the last two are there for the Old Firm and the Topper, not for their full
+calendars.
+
+Squad lists are pulled once a day, not on every sync. A fixture already
+carries its two clubs and their crests, so the lists only keep the club
+catalogue complete; fetching them hourly for a dozen competitions would spend
+the whole free-tier allowance on data we already have.
+
+**The two sources spell clubs differently**, and not only by punctuation:
+football-data returns registered names ("FC Internazionale Milano",
+"Olympique de Marseille", "Sport Lisboa e Benfica"), ESPN returns the short
+ones. `ClubNames` carries an alias table that makes them converge. Without it
+fourteen of the app's biggest clubs matched no real name, so the Derby della
+Madonnina, Le Classique and Ajax–Feyenoord were listed as rivalries that could
+never be recognised — and the same club arrived twice in the catalogue when a
+cup came from the other source. `RealClubNamesTest` checks the editorial data
+against names copied verbatim from both APIs.
 
 **ESPN requires a `User-Agent` it recognises.** Its edge answers 403 to the
 JDK client's default agent and to browser-shaped ones, while letting ordinary

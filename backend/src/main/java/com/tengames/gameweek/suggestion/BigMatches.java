@@ -42,7 +42,12 @@ public final class BigMatches {
             // France
             "paris saint germain", "marseille", "monaco", "lyon", "lille", "nice", "lens",
             // Portugal / Netherlands, for European nights
-            "benfica", "porto", "sporting cp", "ajax", "psv", "feyenoord");
+            "benfica", "porto", "sporting cp", "ajax", "psv", "feyenoord",
+            // Belgium / Scotland: only the two or three names anyone outside
+            // the country would recognise. The rest of those leagues reaches a
+            // card through a derby, or not at all.
+            "anderlecht", "club brugge", "standard liege",
+            "celtic", "rangers");
 
     private static Set<String> normalise(String... names) {
         Set<String> keys = new java.util.HashSet<>();
@@ -77,24 +82,68 @@ public final class BigMatches {
             pair("lyon", "saint etienne"),
             pair("benfica", "porto"),
             pair("benfica", "sporting cp"),
-            pair("ajax", "feyenoord"));
+            pair("porto", "sporting cp"),
+            pair("porto", "braga"),
+            pair("ajax", "feyenoord"),
+            pair("ajax", "psv"),
+            pair("psv", "feyenoord"),
+            // Belgium
+            pair("anderlecht", "club brugge"),
+            pair("anderlecht", "standard liege"),
+            pair("club brugge", "cercle brugge"),
+            pair("standard liege", "charleroi"),
+            // Scotland
+            pair("celtic", "rangers"),
+            pair("heart of midlothian", "hibernian"),
+            pair("dundee", "dundee united"),
+            // England beyond the top flight, where most of these are played
+            pair("west bromwich albion", "wolverhampton wanderers"),
+            pair("cardiff city", "swansea city"),
+            pair("bristol city", "cardiff city"),
+            pair("portsmouth", "southampton"),
+            pair("blackburn rovers", "burnley"),
+            pair("millwall", "charlton athletic"),
+            pair("derby county", "nottingham forest"),
+            pair("norwich city", "ipswich town"),
+            pair("sheffield united", "sheffield wednesday"),
+            pair("birmingham city", "aston villa"),
+            pair("middlesbrough", "sunderland"),
+            pair("newcastle united", "sunderland"),
+            pair("leeds united", "manchester united"));
 
     /**
      * How much each competition is worth on its own. The Champions League
      * tops it because a group-stage night still draws people who ignore a
      * mid-table league game.
      */
-    private static final Map<String, Integer> COMPETITION_WEIGHT = Map.of(
-            "CL", 10,
+    private static final Map<String, Integer> COMPETITION_WEIGHT = Map.ofEntries(
+            Map.entry("CL", 10),
             // a one-off final between two champions is the definition of a
             // fixture worth putting in front of players
-            "CSHIELD", 9,
-            "TDC", 9,
-            "PL", 8,
-            "PD", 8,
-            "SA", 6,
-            "BL1", 6,
-            "FL1", 5);
+            Map.entry("CSHIELD", 9),
+            Map.entry("TDC", 9),
+            Map.entry("PL", 8),
+            Map.entry("PD", 8),
+            Map.entry("SA", 6),
+            Map.entry("BL1", 6),
+            Map.entry("FL1", 5),
+            // The domestic cups. Worth less than a league weekend on their own,
+            // because the early rounds are third-tier clubs — a tie that
+            // matters gets there through the clubs playing it, not the badge.
+            Map.entry("FACUP", 5),
+            Map.entry("CDR", 5),
+            Map.entry("COPPA", 5),
+            Map.entry("DFB", 5),
+            Map.entry("CDF", 5),
+            Map.entry("EFLCUP", 4),
+            // Leagues that reach a card through their own big matches:
+            // Benfica-Porto and the Old Firm carry themselves, a midweek
+            // fixture between two mid-table sides does not.
+            Map.entry("PPL", 4),
+            Map.entry("DED", 4),
+            Map.entry("ELC", 3),
+            Map.entry("BEL", 3),
+            Map.entry("SCO", 3));
 
     private BigMatches() {
     }

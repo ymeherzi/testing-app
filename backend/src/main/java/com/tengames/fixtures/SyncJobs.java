@@ -61,7 +61,10 @@ public class SyncJobs {
     public void kickoffRefresh() {
         LocalDate today = LocalDate.ofInstant(clock.instant(), ZoneOffset.UTC);
         cupImporter.ifAvailable(importer -> importer.importCups(today.minusDays(1), today.plusDays(14)));
-        syncService.syncAll(today.minusDays(1), today.plusDays(14));
+        // fixtures only: squad lists change about never, and fetching them
+        // hourly for a dozen competitions would spend the whole free-tier
+        // allowance on data we already have
+        syncService.syncAll(today.minusDays(1), today.plusDays(14), false);
     }
 
     /** Result polling; self-suppresses when no match window is active. */

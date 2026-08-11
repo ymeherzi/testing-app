@@ -43,7 +43,10 @@ public class AdminSyncController {
             java.time.LocalDate today = java.time.LocalDate.ofInstant(clock.instant(), java.time.ZoneOffset.UTC);
             importer.importCups(today.minusDays(7), today.plusDays(30));
         });
-        return syncService.syncAll();
+        // fixtures only, so the editor is not left waiting on squad lists the
+        // nightly job already keeps up to date
+        java.time.LocalDate today = java.time.LocalDate.ofInstant(clock.instant(), java.time.ZoneOffset.UTC);
+        return syncService.syncAll(today.minusDays(7), today.plusDays(30), false);
     }
 
     @PostMapping("/api/admin/sync/livescores")
