@@ -50,7 +50,24 @@ Open http://localhost:5173.
 Set `FOOTBALL_DATA_API_KEY` (free at football-data.org) and
 `APP_FIXTURES_PROVIDER=footballdata`, and enable jobs with
 `APP_JOBS_ENABLED=true` — see `.env.example`. Calls are rate-limited to 8/min
-(free tier allows 10).
+(free tier allows 10), and a 429 is waited out and retried once: the allowance
+belongs to the account, so our own counter cannot be the whole story.
+
+A competition that fails is logged and skipped, and the rest are still synced
+and kept — `SyncSummary.failed` names them. This is not defensive
+housekeeping: one 429 used to abort the run, roll back everything already
+fetched, and skip the cup import that followed, which is how the season's
+opening finals went missing with no error anyone would notice.
+
+Cups the free tier omits (Community Shield, Trophée des Champions) come from
+ESPN's public API, and are imported **before** the league sync for the same
+reason.
+
+**ESPN requires a `User-Agent` it recognises.** Its edge answers 403 to the
+JDK client's default agent and to browser-shaped ones, while letting ordinary
+HTTP tools through; both callers log and continue, so the failure is silent.
+`EspnClientConfig` is the one place that sets it, and both the cup importer
+and the live-score poller share that client.
 
 ## Try the whole loop
 

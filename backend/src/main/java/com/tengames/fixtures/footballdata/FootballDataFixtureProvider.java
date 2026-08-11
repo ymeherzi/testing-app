@@ -42,24 +42,63 @@ public class FootballDataFixtureProvider implements FixtureProvider {
 
     @Override
     public List<ProviderTeam> fetchTeams(String competitionCode) {
-        rateLimiter.acquire();
-        TeamsResponse response = restClient.get()
+        TeamsResponse response = withRateLimit(() -> restClient.get()
                 .uri("/competitions/{code}/teams", competitionCode)
                 .retrieve()
-                .body(TeamsResponse.class);
+                .body(TeamsResponse.class));
         return response == null || response.teams() == null ? List.of()
                 : response.teams().stream().map(TeamJson::toProviderTeam).toList();
     }
 
     @Override
     public List<ProviderMatch> fetchMatches(String competitionCode, LocalDate from, LocalDate to) {
-        rateLimiter.acquire();
-        MatchesResponse response = restClient.get()
+        MatchesResponse response = withRateLimit(() -> restClient.get()
                 .uri("/competitions/{code}/matches?dateFrom={from}&dateTo={to}", competitionCode, from, to)
                 .retrieve()
-                .body(MatchesResponse.class);
+                .body(MatchesResponse.class));
         return response == null || response.matches() == null ? List.of()
                 : response.matches().stream().map(match -> match.toProviderMatch(competitionCode)).toList();
+    }
+
+    /**
+     * Runs a call under our own limiter, and once more if the free tier says
+     * no anyway.
+     *
+     * <p>Our limiter counts this process's calls; the allowance belongs to the
+     * account, so a second instance, a manual sync during a scheduled one, or
+     * simply a window that does not line up with theirs all produce a 429. The
+     * response says how long to wait ("Wait 1 seconds"), and one pause is
+     * cheaper than losing a competition's fixtures for the day.
+     */
+    private <T> T withRateLimit(java.util.function.Supplier<T> call) {
+        rateLimiter.acquire();
+        try {
+            return call.get();
+        } catch (org.springframework.web.client.RestClientResponseException e) {
+            if (e.getStatusCode().value() != 429) {
+                throw e;
+            }
+            log.info("football-data.org rate limit hit; waiting {}s and retrying once", retryAfterSeconds(e));
+            sleep(retryAfterSeconds(e));
+            rateLimiter.acquire();
+            return call.get();
+        }
+    }
+
+    /** Their message carries the wait; fall back to a whole window if it does not. */
+    private static long retryAfterSeconds(org.springframework.web.client.RestClientResponseException e) {
+        java.util.regex.Matcher matcher =
+                java.util.regex.Pattern.compile("Wait (\\d+) second").matcher(e.getResponseBodyAsString());
+        return matcher.find() ? Math.min(Long.parseLong(matcher.group(1)) + 1, 60) : 60;
+    }
+
+    private static void sleep(long seconds) {
+        try {
+            Thread.sleep(java.time.Duration.ofSeconds(seconds));
+        } catch (InterruptedException interrupted) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted while waiting out a rate limit", interrupted);
+        }
     }
 
     // --- wire format ---

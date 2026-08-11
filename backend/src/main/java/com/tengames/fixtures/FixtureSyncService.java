@@ -14,7 +14,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class FixtureSyncService {
@@ -25,43 +24,81 @@ public class FixtureSyncService {
     private final CompetitionRepository competitions;
     private final TeamRepository teams;
     private final MatchRepository matches;
+    private final org.springframework.transaction.support.TransactionTemplate competitionTx;
     private final Clock clock;
 
     public FixtureSyncService(FixtureProvider provider, CompetitionRepository competitions,
-                              TeamRepository teams, MatchRepository matches, Clock clock) {
+                              TeamRepository teams, MatchRepository matches,
+                              org.springframework.transaction.PlatformTransactionManager txManager, Clock clock) {
         this.provider = provider;
         this.competitions = competitions;
         this.teams = teams;
         this.matches = matches;
         this.clock = clock;
+        this.competitionTx = new org.springframework.transaction.support.TransactionTemplate(txManager);
+        this.competitionTx.setPropagationBehavior(
+                org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
 
-    public record SyncSummary(int teamsUpserted, int matchesUpserted) {
+    /**
+     * @param failed competitions the provider could not deliver, by code. An
+     *               empty list is the only completely successful outcome, and
+     *               the editor needs to see the difference.
+     */
+    public record SyncSummary(int teamsUpserted, int matchesUpserted, java.util.List<String> failed) {
+
+        public SyncSummary(int teamsUpserted, int matchesUpserted) {
+            this(teamsUpserted, matchesUpserted, java.util.List.of());
+        }
     }
 
     /** Sync all provider-backed competitions over a default window (past week to +30 days). */
-    @Transactional
     public SyncSummary syncAll() {
         LocalDate today = LocalDate.ofInstant(clock.instant(), ZoneOffset.UTC);
         return syncAll(today.minusDays(7), today.plusDays(30));
     }
 
-    @Transactional
+    /**
+     * Syncs every provider-backed competition, one at a time.
+     *
+     * <p>Deliberately not one transaction over the lot, and deliberately not
+     * abandoned at the first error. The free tier answers 429 when the minute's
+     * allowance is spent, and a single one of those used to abort the whole
+     * run, roll back everything already fetched, and — because the cup import
+     * runs after this — leave the Community Shield and the Trophée des
+     * Champions out of the pool entirely. One competition failing now costs
+     * that competition and nothing else.
+     */
     public SyncSummary syncAll(LocalDate from, LocalDate to) {
         int teamCount = 0;
         int matchCount = 0;
+        java.util.List<String> failed = new java.util.ArrayList<>();
         for (Competition competition : competitions.findAll()) {
             if (competition.getProviderRef() == null) {
                 continue;
             }
-            SyncSummary summary = syncCompetition(competition, from, to);
-            teamCount += summary.teamsUpserted();
-            matchCount += summary.matchesUpserted();
+            try {
+                // an explicit transaction, not @Transactional: this is a call
+                // from inside the bean, which never reaches the proxy
+                SyncSummary summary = competitionTx.execute(status ->
+                        syncCompetition(competitions.findById(competition.getId()).orElseThrow(), from, to));
+                teamCount += summary.teamsUpserted();
+                matchCount += summary.matchesUpserted();
+            } catch (RuntimeException e) {
+                failed.add(competition.getCode());
+                log.warn("Sync failed for {} — keeping what the other competitions returned: {}",
+                        competition.getCode(), e.getMessage());
+            }
         }
-        log.info("Fixture sync complete: {} teams, {} matches", teamCount, matchCount);
-        return new SyncSummary(teamCount, matchCount);
+        if (failed.isEmpty()) {
+            log.info("Fixture sync complete: {} teams, {} matches", teamCount, matchCount);
+        } else {
+            log.warn("Fixture sync partial: {} teams, {} matches, failed for {}", teamCount, matchCount, failed);
+        }
+        return new SyncSummary(teamCount, matchCount, java.util.List.copyOf(failed));
     }
 
+    /** One competition; the caller runs it in a transaction of its own. */
     private SyncSummary syncCompetition(Competition competition, LocalDate from, LocalDate to) {
         Map<String, Team> teamsByRef = new HashMap<>();
         int teamCount = 0;

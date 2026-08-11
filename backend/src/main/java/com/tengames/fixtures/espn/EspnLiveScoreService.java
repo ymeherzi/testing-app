@@ -46,12 +46,13 @@ public class EspnLiveScoreService {
     private final Clock clock;
 
     public EspnLiveScoreService(MatchRepository matches, ScoringService scoringService,
-                                EspnProperties properties, RestClient.Builder restClientBuilder,
+                                EspnProperties properties, RestClient espnRestClient,
                                 org.springframework.transaction.support.TransactionTemplate tx, Clock clock) {
         this.matches = matches;
         this.scoringService = scoringService;
         this.properties = properties;
-        this.restClient = restClientBuilder.baseUrl(properties.baseUrl()).build();
+        // the shared client: ESPN's edge refuses the JDK's default User-Agent
+        this.restClient = espnRestClient;
         this.tx = tx;
         this.clock = clock;
     }

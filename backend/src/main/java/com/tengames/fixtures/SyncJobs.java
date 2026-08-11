@@ -33,16 +33,20 @@ public class SyncJobs {
         this.clock = clock;
     }
 
-    /** Full upcoming-window sync, once a day. */
+    /**
+     * Full upcoming-window sync, once a day.
+     *
+     * <p>Cups first: they come from ESPN, which has no rate limit, and running
+     * them after the league sync meant one 429 from football-data's free tier
+     * kept the season's opening finals out of the pool for the whole day.
+     */
     @Scheduled(cron = "0 0 5 * * *", zone = "UTC")
     public void dailyFixtureSync() {
-        syncService.syncAll();
-        // Cups the provider's free tier omits, fetched from ESPN over the same
-        // window so a final never goes missing from the pool.
         cupImporter.ifAvailable(importer -> {
             LocalDate today = LocalDate.ofInstant(clock.instant(), ZoneOffset.UTC);
             importer.importCups(today.minusDays(7), today.plusDays(30));
         });
+        syncService.syncAll();
     }
 
     /**
@@ -56,8 +60,8 @@ public class SyncJobs {
     @Scheduled(cron = "0 15 * * * *", zone = "UTC")
     public void kickoffRefresh() {
         LocalDate today = LocalDate.ofInstant(clock.instant(), ZoneOffset.UTC);
-        syncService.syncAll(today.minusDays(1), today.plusDays(14));
         cupImporter.ifAvailable(importer -> importer.importCups(today.minusDays(1), today.plusDays(14)));
+        syncService.syncAll(today.minusDays(1), today.plusDays(14));
     }
 
     /** Result polling; self-suppresses when no match window is active. */

@@ -43,10 +43,11 @@ public class EspnCupImporter {
     private final MatchRepository matches;
     private final Clock clock;
 
-    public EspnCupImporter(RestClient.Builder restClientBuilder, EspnProperties properties,
+    public EspnCupImporter(RestClient espnRestClient, EspnProperties properties,
                            CompetitionRepository competitions, TeamRepository teams,
                            MatchRepository matches, Clock clock) {
-        this.restClient = restClientBuilder.baseUrl(properties.baseUrl()).build();
+        // the shared client: ESPN's edge refuses the JDK's default User-Agent
+        this.restClient = espnRestClient;
         this.properties = properties;
         this.competitions = competitions;
         this.teams = teams;

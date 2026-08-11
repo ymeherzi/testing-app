@@ -26,18 +26,24 @@ public class AdminSyncController {
     }
 
     /**
-     * Pulls the league calendars, then the cups the provider's free tier
-     * omits. Both in one action: an editor pressing "sync" wants the pool
+     * Pulls the cups the provider's free tier omits, then the league
+     * calendars. Both in one action: an editor pressing "sync" wants the pool
      * complete, not partly complete.
+     *
+     * <p>The cups go first on purpose. They used to run afterwards, so any
+     * failure in the league sync — a 429 from the free tier was enough — meant
+     * the Community Shield and the Trophée des Champions were never fetched at
+     * all, and the season's opening finals simply did not exist to choose
+     * from. They come from a different service that has no such limit, so
+     * nothing about them should depend on football-data answering.
      */
     @PostMapping("/api/admin/sync/fixtures")
     public SyncSummary syncFixtures() {
-        SyncSummary summary = syncService.syncAll();
         cupImporter.ifAvailable(importer -> {
             java.time.LocalDate today = java.time.LocalDate.ofInstant(clock.instant(), java.time.ZoneOffset.UTC);
             importer.importCups(today.minusDays(7), today.plusDays(30));
         });
-        return summary;
+        return syncService.syncAll();
     }
 
     @PostMapping("/api/admin/sync/livescores")
