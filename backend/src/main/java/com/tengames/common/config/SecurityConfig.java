@@ -33,12 +33,16 @@ public class SecurityConfig {
                         // anonymous request (bad code, duplicate email) is masked as 401
                         .requestMatchers("/error").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/teams").permitAll()
+                        // reached from an emailed link, by someone who is not signed in
+                        .requestMatchers(HttpMethod.POST, "/api/notifications/unsubscribe").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/api/admin/**", "/api/dev/**").hasRole("ADMIN")
-                        // SPA shell + static assets (auth happens client-side against /api)
+                        // SPA shell + static assets (auth happens client-side against /api).
+                        // Mirrors SpaForwardingController: a route in one list and not the
+                        // other answers 401 instead of the app.
                         .requestMatchers(HttpMethod.GET,
-                                "/", "/index.html", "/login", "/signup", "/table", "/table/**", "/join/**",
-                                "/players/**", "/profile", "/admin",
+                                "/", "/index.html", "/login", "/signup", "/forgot", "/table", "/table/**",
+                                "/join/**", "/players/**", "/profile", "/rules", "/unsubscribe", "/admin",
                                 "/assets/**", "/*.js", "/*.png", "/*.webmanifest", "/*.ico").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
