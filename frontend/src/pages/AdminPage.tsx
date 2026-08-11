@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from 'react'
-import { useAdminActions, useAdminGameweeks, useAdminMatchPool } from '../api/queries'
+import { useAdminAccounts, useAdminActions, useAdminGameweeks, useAdminMatchPool } from '../api/queries'
 import { RoundComposer, type RoundSpec } from '../components/RoundComposer'
 import { TeamBadge } from '../components/TeamBadge'
-import type { MatchView } from '../api/types'
+import type { AccountView, MatchView } from '../api/types'
 import { kickoffTimeLabel, kickoffDayLabel } from '../lib/format'
 import { useT } from '../i18n'
 
@@ -146,6 +146,8 @@ export function AdminPage() {
         ))}
       </section>
 
+      <Accounts />
+
       <section className="space-y-3">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">{t('admin.newGameweek')}</h2>
         <form onSubmit={create} className="flex flex-wrap items-center gap-2">
@@ -237,6 +239,99 @@ export function AdminPage() {
         </div>
       </details>
     </div>
+  )
+}
+
+/**
+ * Finding an account and removing it.
+ *
+ * <p>Signups go wrong in ordinary ways — a mistyped address that will never
+ * receive its code — and the alternative was a statement typed straight into
+ * the production database. Nothing is listed until something is searched for:
+ * this is a repair tool, not a directory of everybody's email address.
+ */
+function Accounts() {
+  const t = useT()
+  const { deleteAccount } = useAdminActions()
+  const [query, setQuery] = useState('')
+  const [confirming, setConfirming] = useState<string | null>(null)
+  const [message, setMessage] = useState<string | null>(null)
+  const searching = query.trim().length >= 3
+  const { data: accounts, isFetching } = useAdminAccounts(query, searching)
+
+  const remove = async (account: AccountView) => {
+    setConfirming(null)
+    setMessage(null)
+    try {
+      await deleteAccount.mutateAsync(account.id)
+      setMessage(t('admin.accountDeleted', { email: account.email }))
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : t('admin.actionFailed'))
+    }
+  }
+
+  return (
+    <section className="space-y-3">
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">{t('admin.accounts')}</h2>
+      <input
+        type="search"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder={t('admin.searchAccount')}
+        className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+      />
+      {message && <p className="text-sm text-slate-300">{message}</p>}
+      {!searching ? (
+        <p className="text-xs text-slate-500">{t('admin.searchAccountHint')}</p>
+      ) : isFetching && !accounts ? (
+        <p className="text-xs text-slate-500">{t('common.loading')}</p>
+      ) : accounts?.length === 0 ? (
+        <p className="text-xs text-slate-500">{t('admin.noAccounts')}</p>
+      ) : (
+        <ul className="space-y-2">
+          {accounts?.map((account) => (
+            <li key={account.id} className="rounded-xl border border-slate-800 bg-slate-900 p-3 text-sm">
+              <p className="font-medium text-slate-100">{account.displayName}</p>
+              <p className="break-all text-xs text-slate-400">{account.email}</p>
+              <p className="mt-1 text-xs text-slate-500">
+                {account.emailVerified ? t('admin.accountVerified') : t('admin.accountUnverified')} ·{' '}
+                {t('admin.accountActivity', {
+                  predictions: account.predictions,
+                  leagues: account.leagues,
+                })}
+              </p>
+              {confirming === account.id ? (
+                <div className="mt-2 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => remove(account)}
+                    className="rounded-lg bg-red-500 px-3 py-1.5 text-xs font-semibold text-red-950"
+                  >
+                    {t('admin.confirmDelete')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirming(null)}
+                    className="text-xs font-medium text-slate-400"
+                  >
+                    {t('admin.cancel')}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setConfirming(account.id)}
+                  disabled={account.admin}
+                  className="mt-2 text-xs font-medium text-red-400 underline disabled:text-slate-600 disabled:no-underline"
+                >
+                  {account.admin ? t('admin.accountIsAdmin') : t('admin.deleteAccount')}
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   )
 }
 

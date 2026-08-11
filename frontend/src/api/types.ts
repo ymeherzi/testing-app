@@ -179,3 +179,15 @@ export interface SuggestionView {
   score: number
   reasons: string[]
 }
+
+/** An account as the admin screen lists it, with what removing it would cost. */
+export interface AccountView {
+  id: string
+  email: string
+  displayName: string
+  emailVerified: boolean
+  admin: boolean
+  predictions: number
+  leagues: number
+  ownedLeagues: number
+}

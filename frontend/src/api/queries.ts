@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from './client'
 import type { ScoringScale } from '../lib/scoring'
 import type {
+  AccountView,
   CompetitionView,
   GameweekSummary,
   GameweekView,
@@ -222,6 +223,15 @@ export function useAdminSuggestions(from: string, to: string, enabled: boolean) 
   })
 }
 
+/** Accounts, searched by address or name. Admin screen only. */
+export function useAdminAccounts(query: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ['admin', 'users', query.trim()],
+    queryFn: () => api<AccountView[]>(`/api/admin/users?q=${encodeURIComponent(query.trim())}`),
+    enabled,
+  })
+}
+
 export function useAdminActions() {
   const queryClient = useQueryClient()
   const invalidate = () => {
@@ -265,6 +275,10 @@ export function useAdminActions() {
       }),
     onSettled: invalidate,
   })
+  const deleteAccount = useMutation({
+    mutationFn: (id: string) => api<void>(`/api/admin/users/${id}`, { method: 'DELETE' }),
+    onSettled: invalidate,
+  })
   const publish = useMutation({
     mutationFn: (gameweekId: number) =>
       api<GameweekView>(`/api/admin/gameweeks/${gameweekId}/publish`, { method: 'POST' }),
@@ -282,5 +296,6 @@ export function useAdminActions() {
       }),
     onSettled: invalidate,
   })
-  return { createGameweek, composeGameweek, setFixtures, addFixtures, publish, sync, simulateResult }
+  return { createGameweek, composeGameweek, setFixtures, addFixtures, publish, sync, simulateResult,
+           deleteAccount }
 }
