@@ -26,7 +26,9 @@ export function ClubPicker({
   const t = useT()
   const [query, setQuery] = useState('')
   const [competition, setCompetition] = useState<number | null>(null)
-  const { data: competitions } = useCompetitions()
+  // leagues only: a club is filed under the league it plays in, so filtering
+  // by a cup would narrow the list to nothing
+  const { data: competitions } = useCompetitions(true)
   const searching = query.trim().length >= 2
   const { data: results, isFetching } = useTeamSearch(query, competition, searching)
 

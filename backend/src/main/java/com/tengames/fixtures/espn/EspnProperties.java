@@ -14,8 +14,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *                five, the two super cups, and the Belgian and Scottish
  *                leagues, which are here for the Old Firm and the Topper
  *                rather than for their full calendars. Each entry is
- *                {@code slug|CODE|Name}; the code is what the app shows and
- *                is limited to eight characters by the schema.
+ *                {@code slug|CODE|Name} — or {@code slug|CODE|Name|league} for
+ *                the two that are leagues, which is what decides whether the
+ *                competition can be somebody's favourite championship. The
+ *                code is what the app shows and is limited to eight characters
+ *                by the schema.
  */
 @ConfigurationProperties("app.espn")
 public record EspnProperties(Boolean enabled, String baseUrl, List<String> leagues, List<String> cups) {
@@ -46,8 +49,8 @@ public record EspnProperties(Boolean enabled, String baseUrl, List<String> leagu
                     "ger.dfb_pokal|DFB|DFB-Pokal",
                     "fra.coupe_de_france|CDF|Coupe de France",
                     // and two leagues that exist for their own big matches
-                    "bel.1|BEL|Jupiler Pro League",
-                    "sco.1|SCO|Scottish Premiership");
+                    "bel.1|BEL|Jupiler Pro League|league",
+                    "sco.1|SCO|Scottish Premiership|league");
         }
     }
 }

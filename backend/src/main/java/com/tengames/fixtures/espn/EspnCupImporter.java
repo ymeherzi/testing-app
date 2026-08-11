@@ -55,12 +55,21 @@ public class EspnCupImporter {
         this.clock = clock;
     }
 
-    /** One configured cup: the ESPN slug, our code, and the display name. */
-    private record Cup(String slug, String code, String name) {
+    /**
+     * One configured entry: the ESPN slug, our code, the display name, and
+     * whether it is a league rather than a cup. Two of the entries are
+     * leagues — Belgium and Scotland — and the difference matters beyond
+     * naming: only a league belongs in "my favourite championship".
+     */
+    record Cup(String slug, String code, String name, boolean domestic) {
 
         static Cup parse(String configured) {
             String[] parts = configured.split("\\|");
-            return parts.length == 3 ? new Cup(parts[0].trim(), parts[1].trim(), parts[2].trim()) : null;
+            if (parts.length != 3 && parts.length != 4) {
+                return null;
+            }
+            return new Cup(parts[0].trim(), parts[1].trim(), parts[2].trim(),
+                    parts.length == 4 && parts[3].trim().equals("league"));
         }
     }
 
@@ -110,10 +119,20 @@ public class EspnCupImporter {
     /**
      * The competition row, created on demand with no provider reference:
      * that is what keeps the football-data sync from trying to fetch it.
+     *
+     * <p>The domestic flag is stamped here, on an existing row as much as on a
+     * new one. A migration cannot do this job alone: it only sees the rows that
+     * exist when it runs, and these rows are created afterwards — which is how
+     * the Coppa Italia and the DFB-Pokal ended up offered as championships.
      */
     private Competition competitionFor(Cup cup) {
-        return competitions.findByCode(cup.code())
+        Competition competition = competitions.findByCode(cup.code())
                 .orElseGet(() -> competitions.save(new Competition(cup.code(), cup.name())));
+        if (competition.isDomestic() != cup.domestic()) {
+            competition.setDomestic(cup.domestic());
+            competitions.save(competition);
+        }
+        return competition;
     }
 
     private boolean upsert(Competition competition, EspnLiveScoreService.EventJson event) {
