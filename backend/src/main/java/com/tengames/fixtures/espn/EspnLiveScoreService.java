@@ -182,10 +182,10 @@ public class EspnLiveScoreService {
 
     // --- wire format ---
 
-    record ScoreboardResponse(List<EventJson> events) {
+    public record ScoreboardResponse(List<EventJson> events) {
     }
 
-    record EventJson(String id, String date, StatusJson status, List<CompetitionJson> competitions) {
+    public record EventJson(String id, String date, StatusJson status, List<CompetitionJson> competitions) {
 
         /** ESPN sends minute-precision timestamps ("…T16:00Z") that Instant.parse rejects. */
         private static Instant parseDate(String date) {
@@ -204,7 +204,7 @@ public class EspnLiveScoreService {
             }
         }
 
-        EspnEvent parse() {
+        public EspnEvent parse() {
             if (competitions == null || competitions.isEmpty() || competitions.getFirst().competitors() == null) {
                 return null;
             }
@@ -234,18 +234,18 @@ public class EspnLiveScoreService {
         }
     }
 
-    record CompetitionJson(List<CompetitorJson> competitors) {
+    public record CompetitionJson(List<CompetitorJson> competitors) {
     }
 
-    record CompetitorJson(String homeAway, String score, TeamJson team) {
+    public record CompetitorJson(String homeAway, String score, TeamJson team) {
     }
 
-    record TeamJson(String displayName) {
+    public record TeamJson(String id, String displayName, String logo) {
     }
 
-    record StatusJson(StatusTypeJson type) {
+    public record StatusJson(StatusTypeJson type) {
     }
 
-    record StatusTypeJson(String state) {
+    public record StatusTypeJson(String state) {
     }
 }

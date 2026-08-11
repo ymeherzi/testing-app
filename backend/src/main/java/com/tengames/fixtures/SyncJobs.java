@@ -18,11 +18,18 @@ public class SyncJobs {
 
     private final FixtureSyncService syncService;
     private final ResultPollingService resultPollingService;
+    /** Absent when ESPN is switched off, as it is in dev and tests. */
+    private final org.springframework.beans.factory.ObjectProvider<com.tengames.fixtures.espn.EspnCupImporter>
+            cupImporter;
     private final Clock clock;
 
-    public SyncJobs(FixtureSyncService syncService, ResultPollingService resultPollingService, Clock clock) {
+    public SyncJobs(FixtureSyncService syncService, ResultPollingService resultPollingService,
+                    org.springframework.beans.factory.ObjectProvider<com.tengames.fixtures.espn.EspnCupImporter>
+                            cupImporter,
+                    Clock clock) {
         this.syncService = syncService;
         this.resultPollingService = resultPollingService;
+        this.cupImporter = cupImporter;
         this.clock = clock;
     }
 
@@ -30,6 +37,12 @@ public class SyncJobs {
     @Scheduled(cron = "0 0 5 * * *", zone = "UTC")
     public void dailyFixtureSync() {
         syncService.syncAll();
+        // Cups the provider's free tier omits, fetched from ESPN over the same
+        // window so a final never goes missing from the pool.
+        cupImporter.ifAvailable(importer -> {
+            LocalDate today = LocalDate.ofInstant(clock.instant(), ZoneOffset.UTC);
+            importer.importCups(today.minusDays(7), today.plusDays(30));
+        });
     }
 
     /** Hourly kickoff refresh for the next 48h — locks follow moved kickoffs. */

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAdminActions, useAdminSuggestions } from '../api/queries'
-import type { GameweekView, MatchView, SuggestionView } from '../api/types'
+import type { GameweekView, MatchView, SuggestionView, Team } from '../api/types'
+import { TeamBadge } from './TeamBadge'
 import { kickoffDayLabel, kickoffTimeLabel } from '../lib/format'
 import { useT } from '../i18n'
 
@@ -14,8 +15,9 @@ export interface RoundSpec {
   countsTowardsTable: boolean
 }
 
-function label(match: { homeTeam: { name: string }; awayTeam: { name: string } }): string {
-  return `${match.homeTeam.name} — ${match.awayTeam.name}`
+interface Fixture {
+  homeTeam: Team
+  awayTeam: Team
 }
 
 /**
@@ -26,13 +28,13 @@ function label(match: { homeTeam: { name: string }; awayTeam: { name: string } }
  * fixture you cannot read is a fixture you cannot choose.
  */
 function FixtureRow({
-  name,
+  fixture,
   competition,
   kickoffUtc,
   reasons,
   action,
 }: {
-  name: string
+  fixture: Fixture
   competition: string
   kickoffUtc: string
   reasons?: string[]
@@ -40,7 +42,13 @@ function FixtureRow({
 }) {
   return (
     <li className="rounded-xl border border-slate-800 bg-slate-900 p-3">
-      <p className="font-semibold text-slate-100">{name}</p>
+      <p className="flex items-center gap-2 font-semibold text-slate-100">
+        <TeamBadge team={fixture.homeTeam} size={20} />
+        <span className="min-w-0 truncate">{fixture.homeTeam.name}</span>
+        <span className="text-slate-500">—</span>
+        <TeamBadge team={fixture.awayTeam} size={20} />
+        <span className="min-w-0 truncate">{fixture.awayTeam.name}</span>
+      </p>
       <div className="mt-1 flex items-center justify-between gap-2">
         <p className="text-xs text-slate-400">
           {competition} · {kickoffDayLabel(kickoffUtc)} {kickoffTimeLabel(kickoffUtc)}
@@ -137,7 +145,7 @@ export function RoundComposer({ spec, existing }: { spec: RoundSpec; existing?: 
           {existing.fixtures.map((fixture) => (
             <FixtureRow
               key={fixture.fixtureId}
-              name={label(fixture)}
+              fixture={fixture}
               competition={fixture.competitionCode}
               kickoffUtc={fixture.kickoffUtc}
               action={
@@ -166,7 +174,7 @@ export function RoundComposer({ spec, existing }: { spec: RoundSpec; existing?: 
               {alternatives.slice(0, 12).map((s) => (
                 <FixtureRow
                   key={s.match.id}
-                  name={label(s.match)}
+                  fixture={s.match}
                   competition={s.match.competitionCode}
                   kickoffUtc={s.match.kickoffUtc}
                   reasons={s.reasons}

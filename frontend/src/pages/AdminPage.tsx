@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useAdminActions, useAdminGameweeks, useAdminMatchPool } from '../api/queries'
 import { RoundComposer, type RoundSpec } from '../components/RoundComposer'
+import { TeamBadge } from '../components/TeamBadge'
 import type { MatchView } from '../api/types'
 import { kickoffTimeLabel, kickoffDayLabel } from '../lib/format'
 import { useT } from '../i18n'
@@ -197,7 +198,10 @@ export function AdminPage() {
                        className="mt-0.5 size-4 shrink-0 accent-emerald-500" />
                 {/* the fixture gets its own line: squeezed onto one row with the
                     date and the simulator, the names collapsed to nothing */}
-                <span className="min-w-0 flex-1 font-semibold">{matchLabel(match)}</span>
+                <span className="flex min-w-0 flex-1 items-center gap-2 font-semibold">
+                  <TeamBadge team={match.homeTeam} size={18} />
+                  <span className="min-w-0 truncate">{matchLabel(match)}</span>
+                </span>
               </span>
               <span className="mt-1 flex items-center justify-between gap-2 pl-7">
                 <span className="text-xs text-slate-400">
