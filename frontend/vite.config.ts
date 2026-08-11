@@ -13,6 +13,9 @@ export default defineConfig({
         // new deploys take control immediately instead of one app-launch later
         clientsClaim: true,
         skipWaiting: true,
+        // push handling lives in its own file so a change to caching cannot
+        // quietly take notifications with it
+        importScripts: ['push-sw.js'],
       },
       manifest: {
         name: 'Ten Games',

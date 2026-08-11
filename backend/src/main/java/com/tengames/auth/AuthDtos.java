@@ -47,13 +47,11 @@ public final class AuthDtos {
     }
 
     public record UserResponse(java.util.UUID id, String email, String displayName, String country,
-                               Long favouriteClubTeamId, boolean admin, boolean guideSeen,
-                               boolean notifyEmail) {
+                               Long favouriteClubTeamId, boolean admin, boolean guideSeen) {
 
         public static UserResponse from(User user) {
             return new UserResponse(user.getPublicId(), user.getEmail(), user.getDisplayName(),
-                    user.getCountry(), user.getFavouriteClubTeamId(), user.isAdmin(), user.isGuideSeen(),
-                    user.isNotifyEmail());
+                    user.getCountry(), user.getFavouriteClubTeamId(), user.isAdmin(), user.isGuideSeen());
         }
     }
 

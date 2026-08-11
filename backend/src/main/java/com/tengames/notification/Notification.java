@@ -25,7 +25,9 @@ public class Notification {
         /** The round is published and open for predictions. */
         ROUND_OPENED,
         /** The first kickoff is close and their card is still incomplete. */
-        KICKOFF_REMINDER
+        KICKOFF_REMINDER,
+        /** The season is starting — announced once, by the admin, and never per round. */
+        SEASON_LAUNCH
     }
 
     @Id
@@ -35,7 +37,8 @@ public class Notification {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(name = "gameweek_id", nullable = false)
+    /** Null for an announcement that belongs to no particular round. */
+    @Column(name = "gameweek_id")
     private Long gameweekId;
 
     @Enumerated(EnumType.STRING)

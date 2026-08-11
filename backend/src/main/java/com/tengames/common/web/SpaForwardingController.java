@@ -18,7 +18,7 @@ public class SpaForwardingController {
 
     @GetMapping({"/", "/login", "/signup", "/forgot", "/table", "/table/global", "/table/country", "/table/club",
             "/table/create", "/table/join", "/table/league/{id}", "/join/{code}",
-            "/players/{playerId}", "/profile", "/rules", "/unsubscribe", "/admin"})
+            "/players/{playerId}", "/profile", "/rules", "/admin"})
     public String spa() {
         return "forward:/index.html";
     }

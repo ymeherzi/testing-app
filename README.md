@@ -82,8 +82,10 @@ CI runs both suites on every push (`.github/workflows/ci.yml`).
 | GET | `/api/gameweeks/current`, `/api/gameweeks/{id}` | user |
 | PUT | `/api/gameweeks/{gw}/fixtures/{fx}/prediction` | user (409 when locked) |
 | GET | `/api/leagues/global/table?page&size` | user |
-| POST | `/api/notifications/unsubscribe` | public (signed link from an email) |
+| GET | `/api/push/key` | public (the VAPID public key) |
+| GET/POST/DELETE | `/api/push/subscriptions` | user |
 | GET/POST/PUT | `/api/admin/gameweeks…`, `/api/admin/matches`, `/api/admin/sync/fixtures` | admin |
+| POST | `/api/admin/notifications/launch` | admin (season-launch announcement) |
 | POST | `/api/dev/matches/{id}/result`, `/api/dev/matches/{id}/kickoff` | admin, dev profile only |
 
 ## Deploy to Railway (phone-ready PWA)
@@ -116,12 +118,15 @@ Demo-mode note: the seed provider regenerates fixtures relative to *now* on
 every restart (results reset). With `footballdata` the scheduled jobs keep
 fixtures and results real and results never regress.
 
-## Email (verification codes and round notifications)
+## Email (account business only)
 
-Signup and new-device logins email a six-digit code. Delivery goes through
-[resend.com](https://resend.com) behind an `EmailSender` port; with no
-provider configured the app falls back to `LoggingEmailSender` so the flow
-still works locally.
+Signup, new-device logins and password resets email a six-digit code.
+Delivery goes through [resend.com](https://resend.com) behind an
+`EmailSender` port; with no provider configured the app falls back to
+`LoggingEmailSender` so the flow still works locally.
+
+Nothing else is ever emailed. Round reminders are push notifications — see
+below.
 
 Two providers are supported; an SMTP relay wins when both are set, but on
 Railway only Resend can actually be used (see below).
@@ -132,29 +137,6 @@ Railway only Resend can actually be used (see below).
 | `RESEND_API_KEY` | resend.com over HTTPS — the one that works on Railway |
 | `MAIL_FROM` | sender the provider has verified — **required** with either |
 | `MAIL_LOG_CODES` | testing only: prints codes to the log (see the checklist below) |
-| `APP_BASE_URL` | where the app answers; links inside emails are built from it |
-| `APP_MAIL_DAILY_BUDGET` | emails per rolling 24h, default 90 (Resend's free tier stops at 100) |
-
-### Round notifications
-
-Players are emailed when a round opens, and once more when the first kickoff
-is within 12 hours if their card is still incomplete. `NotificationJobs` looks
-every 15 minutes (with `APP_JOBS_ENABLED=true`); it reads only the database,
-so the frequency costs nothing.
-
-Two properties are enforced rather than intended, and both have tests:
-
-- **Never twice.** A unique index on `(user_id, gameweek_id, kind)` decides
-  it, not the code around it. Each send writes its row and sends inside one
-  transaction, so a provider failure rolls the row back and the email is
-  retried on the next pass instead of being lost.
-- **Never past the daily budget.** Reaching the provider's limit means mail
-  is refused and lost; the batch stops short and resumes later.
-
-Every email carries an unsubscribe link (`/unsubscribe?u=…&t=…`, the token an
-HMAC of the public id). The link opens a page that POSTs, because mail
-scanners fetch every URL in a message and a GET would unsubscribe people who
-never clicked. Players can also toggle it in their profile.
 
 **You need a domain you own. There is no working shortcut around it** —
 this was established the hard way, so don't spend the afternoon again:
@@ -184,6 +166,47 @@ send time, while a missing one fails loudly at startup.
 A refused send is reported, not swallowed: the API answers 502 and the
 code screen shows it, because an account whose code never arrives cannot
 be verified. Signup rolls back with it, so the address stays free.
+
+## Round notifications (web push)
+
+Players are notified when a round opens, and once more when the first kickoff
+is within 12 hours if their card is still incomplete. `NotificationJobs` looks
+every 15 minutes (with `APP_JOBS_ENABLED=true`); it reads only the database,
+so the frequency costs nothing. The season-launch announcement is sent by hand
+from `POST /api/admin/notifications/launch`.
+
+Having a push subscription **is** the consent — there is no separate
+preference to keep in step with it. A 404 or 410 from the push service means
+the device is gone, and the subscription is deleted rather than retried
+forever.
+
+Two properties are enforced rather than intended, and both have tests:
+
+- **Never twice.** A unique index on `(user_id, gameweek_id, kind)` decides
+  it, with a partial index covering announcements that belong to no round.
+- **Never recorded unless delivered.** The row and the send share a
+  transaction, so a push that reaches no device rolls the row back and is
+  retried on the next pass.
+
+| Variable | Meaning |
+|---|---|
+| `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | P-256 key pair, base64url. Generate with `openssl ecparam -genkey -name prime256v1` and export the raw scalar and uncompressed point |
+| `VAPID_SUBJECT` | `mailto:` or `https:` URL a push service can use to reach you |
+
+Without the keys the app still starts and `LoggingPushSender` records what it
+would have sent — local development needs no keys.
+
+**Encryption is implemented against the JDK** (`WebPushCrypto`, RFC 8291 over
+RFC 8188) rather than pulled from a library: the usual Java dependency brings
+Netty, jose4j and BouncyCastle 1.70 — abandoned in 2021, with known advisories
+— to make one HTTPS POST. It is checked against the worked example in RFC 8291
+§5, so a mistake a round-trip test would cancel out still fails the build.
+
+**On iPhone and iPad, push works only once the PWA is installed to the Home
+Screen** (iOS 16.4+). In a Safari tab, subscribing simply fails, so the opt-in
+screen detects it and shows the install instructions instead of a button that
+cannot work. This is an Apple restriction, not something the code can route
+around.
 
 ## Before going live — security checklist
 

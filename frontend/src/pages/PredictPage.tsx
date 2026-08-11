@@ -3,6 +3,7 @@ import { useCurrentGameweek, useGameweek, useGameweekHistory, usePredictMutation
 import { ApiError } from '../api/client'
 import type { FixtureView } from '../api/types'
 import { GameweekPicker } from '../components/GameweekPicker'
+import { PushOptIn } from '../components/PushOptIn'
 import { MatchCard } from '../components/MatchCard'
 import { kickoffDayLabel } from '../lib/format'
 import { useT } from '../i18n'
@@ -64,6 +65,9 @@ export function PredictPage() {
         </div>
         <GameweekPicker history={history} value={selectedGameweek ?? gameweek.id} onChange={setSelectedGameweek} />
       </header>
+
+      {/* offered where the game is played; it disappears once answered */}
+      <PushOptIn compact />
 
       {[...groups.entries()].map(([day, fixtures]) => (
         <section key={day} className="space-y-3">

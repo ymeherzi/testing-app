@@ -53,14 +53,17 @@ export const fr: Messages = {
   'forgot.backToSignIn': 'Retour à la connexion',
   'forgot.failed': "Ça n'a pas fonctionné",
 
-  'unsubscribe.title': 'Préférences e-mail',
-  'unsubscribe.working': 'Un instant…',
-  'unsubscribe.done':
-    "C'est fait — tu ne recevras plus d'e-mails sur les journées. Tu peux les réactiver dans ton profil.",
-  'unsubscribe.failed': "Ce lien n'est plus valable. Tu peux modifier ce choix depuis ton profil.",
-  'unsubscribe.backToApp': 'Retour à Ten Games',
-
   'profile.rules': 'Règles du jeu',
+
+  'push.title': 'Notifications des journées',
+  'push.hint': "Un mot à l'ouverture d'une journée, et un rappel si ta grille est encore vide à l'approche du coup d'envoi.",
+  'push.enable': 'Activer les notifications',
+  'push.enabling': 'Un instant…',
+  'push.disable': 'Désactiver sur cet appareil',
+  'push.on': 'Activées sur cet appareil.',
+  'push.denied': "Bloquées dans les réglages de ton navigateur — autorise les notifications pour tengames.app pour les réactiver.",
+  'push.needsInstall': "Sur iPhone et iPad, ajoute d'abord Ten Games à ton écran d'accueil : touche Partager, puis « Sur l'écran d'accueil », et ouvre l'app depuis là.",
+  'push.failed': "Impossible d'activer les notifications",
 
   'guide.step': 'Étape {current} sur {total}',
   'guide.skip': 'Passer',
@@ -221,9 +224,6 @@ export const fr: Messages = {
   'profile.club': 'Club favori',
   'profile.language': 'Langue',
   'profile.notSet': 'Non renseigné',
-  'profile.notifyEmail': 'Me prévenir des journées par e-mail',
-  'profile.notifyEmailHint':
-    "À l'ouverture d'une journée, et une fois de plus si ta grille est encore vide à l'approche du coup d'envoi.",
   'profile.save': 'Enregistrer',
   'profile.saving': 'Enregistrement…',
   'profile.saved': 'Enregistré — tes ligues suivent immédiatement tes nouveaux choix.',

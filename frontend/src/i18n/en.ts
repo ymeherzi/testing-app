@@ -55,13 +55,17 @@ export const en = {
   'forgot.backToSignIn': 'Back to sign in',
   'forgot.failed': "That didn't work",
 
-  'unsubscribe.title': 'Email preferences',
-  'unsubscribe.working': 'One moment…',
-  'unsubscribe.done': "Done — we won't email you about rounds any more. You can turn it back on in your profile.",
-  'unsubscribe.failed': 'That link is no longer valid. You can change this in your profile instead.',
-  'unsubscribe.backToApp': 'Back to Ten Games',
-
   'profile.rules': 'Game rules',
+
+  'push.title': 'Round notifications',
+  'push.hint': 'A note when a round opens, and a reminder if your card is still empty near kick-off.',
+  'push.enable': 'Turn on notifications',
+  'push.enabling': 'Just a moment…',
+  'push.disable': 'Turn off on this device',
+  'push.on': 'On for this device.',
+  'push.denied': 'Blocked in your browser settings — allow notifications for tengames.app to switch them back on.',
+  'push.needsInstall': 'On iPhone and iPad, add Ten Games to your Home Screen first: tap Share, then "Add to Home Screen", and open it from there.',
+  'push.failed': 'Could not turn notifications on',
 
   'guide.step': 'Step {current} of {total}',
   'guide.skip': 'Skip',
@@ -221,8 +225,6 @@ export const en = {
   'profile.club': 'Favourite club',
   'profile.language': 'Language',
   'profile.notSet': 'Not set',
-  'profile.notifyEmail': 'Email me about rounds',
-  'profile.notifyEmailHint': 'When a round opens, and once more if your card is still empty near kick-off.',
   'profile.save': 'Save changes',
   'profile.saving': 'Saving…',
   'profile.saved': 'Saved — league memberships follow your new picks instantly.',

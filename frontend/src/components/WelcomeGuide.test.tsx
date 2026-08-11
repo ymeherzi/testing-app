@@ -20,7 +20,6 @@ const player = (guideSeen: boolean): UserProfile => ({
   favouriteClubTeamId: null,
   admin: false,
   guideSeen,
-  notifyEmail: true,
 })
 
 let currentUser: UserProfile | null = null

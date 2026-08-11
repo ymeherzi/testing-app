@@ -4,6 +4,7 @@ import { useTeams, useUpdateProfile } from '../api/queries'
 import { useAuth } from '../auth/AuthContext'
 import { countries } from '../lib/countries'
 import { LOCALES, useI18n, type Locale } from '../i18n'
+import { PushOptIn } from '../components/PushOptIn'
 
 export function ProfilePage() {
   const { user, logout, updateUser } = useAuth()
@@ -15,7 +16,6 @@ export function ProfilePage() {
   const [displayName, setDisplayName] = useState(user?.displayName ?? '')
   const [country, setCountry] = useState(user?.country ?? '')
   const [clubId, setClubId] = useState(user?.favouriteClubTeamId?.toString() ?? '')
-  const [notifyEmail, setNotifyEmail] = useState(user?.notifyEmail ?? true)
   const [message, setMessage] = useState<string | null>(null)
 
   const submit = async (event: FormEvent) => {
@@ -26,7 +26,6 @@ export function ProfilePage() {
         displayName,
         country: country || null,
         favouriteClubTeamId: clubId ? Number(clubId) : null,
-        notifyEmail,
       })
       updateUser(updated)
       setMessage(t('profile.saved'))
@@ -83,18 +82,6 @@ export function ProfilePage() {
             ))}
           </select>
         </label>
-        <label className="flex items-start gap-3 rounded-xl border border-slate-800 bg-slate-900 p-4">
-          <input
-            type="checkbox"
-            checked={notifyEmail}
-            onChange={(e) => setNotifyEmail(e.target.checked)}
-            className="mt-1 size-4 accent-emerald-500"
-          />
-          <span>
-            <span className="block text-sm font-medium text-slate-200">{t('profile.notifyEmail')}</span>
-            <span className="block text-xs text-slate-400">{t('profile.notifyEmailHint')}</span>
-          </span>
-        </label>
         {message && <p className="text-sm text-slate-300">{message}</p>}
         <button
           type="submit"
@@ -104,6 +91,8 @@ export function ProfilePage() {
           {updateProfile.isPending ? t('profile.saving') : t('profile.save')}
         </button>
       </form>
+
+      <PushOptIn />
 
       <Link
         to="/rules"
