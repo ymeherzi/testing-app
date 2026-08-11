@@ -146,8 +146,24 @@ export function usePredictMutation(gameweekId: number) {
 
 export function useUpdateProfile() {
   return useMutation({
-    mutationFn: (input: { displayName: string; country: string | null; favouriteClubTeamId: number | null }) =>
-      api<UserProfile>('/api/me', { method: 'PUT', body: JSON.stringify(input) }),
+    mutationFn: (input: {
+      displayName: string
+      country: string | null
+      favouriteClubTeamId: number | null
+      notifyEmail: boolean
+    }) => api<UserProfile>('/api/me', { method: 'PUT', body: JSON.stringify(input) }),
+  })
+}
+
+/**
+ * Acting on the link at the bottom of an email. Public on purpose: whoever
+ * clicks it is not signed in, and asking them to sign in to stop email is
+ * how you get reported as spam instead.
+ */
+export function useUnsubscribe() {
+  return useMutation({
+    mutationFn: (input: { u: string; t: string }) =>
+      api<void>('/api/notifications/unsubscribe', { method: 'POST', body: JSON.stringify(input) }),
   })
 }
 

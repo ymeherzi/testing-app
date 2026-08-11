@@ -82,6 +82,7 @@ CI runs both suites on every push (`.github/workflows/ci.yml`).
 | GET | `/api/gameweeks/current`, `/api/gameweeks/{id}` | user |
 | PUT | `/api/gameweeks/{gw}/fixtures/{fx}/prediction` | user (409 when locked) |
 | GET | `/api/leagues/global/table?page&size` | user |
+| POST | `/api/notifications/unsubscribe` | public (signed link from an email) |
 | GET/POST/PUT | `/api/admin/gameweeks…`, `/api/admin/matches`, `/api/admin/sync/fixtures` | admin |
 | POST | `/api/dev/matches/{id}/result`, `/api/dev/matches/{id}/kickoff` | admin, dev profile only |
 
@@ -115,7 +116,7 @@ Demo-mode note: the seed provider regenerates fixtures relative to *now* on
 every restart (results reset). With `footballdata` the scheduled jobs keep
 fixtures and results real and results never regress.
 
-## Email (verification codes)
+## Email (verification codes and round notifications)
 
 Signup and new-device logins email a six-digit code. Delivery goes through
 [resend.com](https://resend.com) behind an `EmailSender` port; with no
@@ -131,6 +132,29 @@ Railway only Resend can actually be used (see below).
 | `RESEND_API_KEY` | resend.com over HTTPS — the one that works on Railway |
 | `MAIL_FROM` | sender the provider has verified — **required** with either |
 | `MAIL_LOG_CODES` | testing only: prints codes to the log (see the checklist below) |
+| `APP_BASE_URL` | where the app answers; links inside emails are built from it |
+| `APP_MAIL_DAILY_BUDGET` | emails per rolling 24h, default 90 (Resend's free tier stops at 100) |
+
+### Round notifications
+
+Players are emailed when a round opens, and once more when the first kickoff
+is within 12 hours if their card is still incomplete. `NotificationJobs` looks
+every 15 minutes (with `APP_JOBS_ENABLED=true`); it reads only the database,
+so the frequency costs nothing.
+
+Two properties are enforced rather than intended, and both have tests:
+
+- **Never twice.** A unique index on `(user_id, gameweek_id, kind)` decides
+  it, not the code around it. Each send writes its row and sends inside one
+  transaction, so a provider failure rolls the row back and the email is
+  retried on the next pass instead of being lost.
+- **Never past the daily budget.** Reaching the provider's limit means mail
+  is refused and lost; the batch stops short and resumes later.
+
+Every email carries an unsubscribe link (`/unsubscribe?u=…&t=…`, the token an
+HMAC of the public id). The link opens a page that POSTs, because mail
+scanners fetch every URL in a message and a GET would unsubscribe people who
+never clicked. Players can also toggle it in their profile.
 
 **You need a domain you own. There is no working shortcut around it** —
 this was established the hard way, so don't spend the afternoon again:

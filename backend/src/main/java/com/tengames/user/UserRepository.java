@@ -12,4 +12,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByGoogleSubject(String googleSubject);
 
     boolean existsByEmailIgnoreCase(String email);
+
+    /** Who may be mailed about a round: a proven address, and consent. */
+    java.util.List<User> findByEmailVerifiedTrueAndNotifyEmailTrue();
 }

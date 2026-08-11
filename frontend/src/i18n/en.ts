@@ -55,6 +55,12 @@ export const en = {
   'forgot.backToSignIn': 'Back to sign in',
   'forgot.failed': "That didn't work",
 
+  'unsubscribe.title': 'Email preferences',
+  'unsubscribe.working': 'One moment…',
+  'unsubscribe.done': "Done — we won't email you about rounds any more. You can turn it back on in your profile.",
+  'unsubscribe.failed': 'That link is no longer valid. You can change this in your profile instead.',
+  'unsubscribe.backToApp': 'Back to Ten Games',
+
   'profile.rules': 'Game rules',
 
   'guide.step': 'Step {current} of {total}',
@@ -215,6 +221,8 @@ export const en = {
   'profile.club': 'Favourite club',
   'profile.language': 'Language',
   'profile.notSet': 'Not set',
+  'profile.notifyEmail': 'Email me about rounds',
+  'profile.notifyEmailHint': 'When a round opens, and once more if your card is still empty near kick-off.',
   'profile.save': 'Save changes',
   'profile.saving': 'Saving…',
   'profile.saved': 'Saved — league memberships follow your new picks instantly.',

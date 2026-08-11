@@ -28,7 +28,9 @@ public class UserController {
     public record UpdateProfileRequest(
             @NotBlank @Size(min = 2, max = 50) String displayName,
             @Pattern(regexp = "[A-Z]{2}", message = "must be an ISO 3166-1 alpha-2 code") String country,
-            Long favouriteClubTeamId) {
+            Long favouriteClubTeamId,
+            /** Absent from older clients, which must not silently unsubscribe anyone. */
+            Boolean notifyEmail) {
     }
 
     @GetMapping
@@ -57,6 +59,9 @@ public class UserController {
         user.setDisplayName(request.displayName());
         user.setCountry(request.country());
         user.setFavouriteClubTeamId(request.favouriteClubTeamId());
+        if (request.notifyEmail() != null) {
+            user.setNotifyEmail(request.notifyEmail());
+        }
         return UserResponse.from(user);
     }
 }

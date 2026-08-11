@@ -8,6 +8,8 @@ export interface UserProfile {
   admin: boolean
   /** false until the welcome guide has been finished or skipped */
   guideSeen: boolean
+  /** whether round-opening and reminder emails may be sent */
+  notifyEmail: boolean
 }
 
 export interface AuthResponse {

@@ -53,6 +53,13 @@ export const fr: Messages = {
   'forgot.backToSignIn': 'Retour à la connexion',
   'forgot.failed': "Ça n'a pas fonctionné",
 
+  'unsubscribe.title': 'Préférences e-mail',
+  'unsubscribe.working': 'Un instant…',
+  'unsubscribe.done':
+    "C'est fait — tu ne recevras plus d'e-mails sur les journées. Tu peux les réactiver dans ton profil.",
+  'unsubscribe.failed': "Ce lien n'est plus valable. Tu peux modifier ce choix depuis ton profil.",
+  'unsubscribe.backToApp': 'Retour à Ten Games',
+
   'profile.rules': 'Règles du jeu',
 
   'guide.step': 'Étape {current} sur {total}',
@@ -214,6 +221,9 @@ export const fr: Messages = {
   'profile.club': 'Club favori',
   'profile.language': 'Langue',
   'profile.notSet': 'Non renseigné',
+  'profile.notifyEmail': 'Me prévenir des journées par e-mail',
+  'profile.notifyEmailHint':
+    "À l'ouverture d'une journée, et une fois de plus si ta grille est encore vide à l'approche du coup d'envoi.",
   'profile.save': 'Enregistrer',
   'profile.saving': 'Enregistrement…',
   'profile.saved': 'Enregistré — tes ligues suivent immédiatement tes nouveaux choix.',

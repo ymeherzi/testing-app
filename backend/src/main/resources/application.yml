@@ -51,6 +51,11 @@ app:
     provider: ${APP_FIXTURES_PROVIDER:seed}
   jobs:
     enabled: ${APP_JOBS_ENABLED:false}
+  notifications:
+    # links in an email cannot be relative
+    base-url: ${APP_BASE_URL:https://tengames.app}
+    # Resend's free tier stops at 100 a day and refuses the rest
+    daily-budget: ${APP_MAIL_DAILY_BUDGET:90}
   footballdata:
     base-url: https://api.football-data.org/v4
     api-key: ${FOOTBALL_DATA_API_KEY:}

@@ -32,6 +32,9 @@ public class User {
     @Column(name = "guide_seen", nullable = false)
     private boolean guideSeen;
 
+    @Column(name = "notify_email", nullable = false)
+    private boolean notifyEmail = true;
+
     /** Google's stable user id, set for accounts that sign in with Google. */
     @Column(name = "google_subject", unique = true)
     private String googleSubject;
@@ -117,6 +120,15 @@ public class User {
     /** Set when the player finishes the welcome guide or skips it. */
     public void markGuideSeen() {
         this.guideSeen = true;
+    }
+
+    /** Whether round-opening and kickoff-reminder emails may be sent. */
+    public boolean isNotifyEmail() {
+        return notifyEmail;
+    }
+
+    public void setNotifyEmail(boolean notifyEmail) {
+        this.notifyEmail = notifyEmail;
     }
 
     public void markEmailVerified() {

@@ -16,6 +16,7 @@ import { ProfilePage } from './pages/ProfilePage'
 import { RulesPage } from './pages/RulesPage'
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
 import { SignupPage } from './pages/SignupPage'
+import { UnsubscribePage } from './pages/UnsubscribePage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -44,6 +45,8 @@ export default function App() {
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/forgot" element={<ForgotPasswordPage />} />
               <Route path="/join/:code" element={<JoinDeepLinkPage />} />
+              {/* reached from an email, by someone who may not be signed in */}
+              <Route path="/unsubscribe" element={<UnsubscribePage />} />
               <Route element={<RequireAuth />}>
                 <Route element={<AppShell />}>
                   <Route path="/" element={<PredictPage />} />
