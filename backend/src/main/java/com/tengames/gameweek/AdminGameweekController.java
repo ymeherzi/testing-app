@@ -164,6 +164,15 @@ public class AdminGameweekController {
         return gameweekService.setFixtures(id, request.matchIds());
     }
 
+    /**
+     * Tops a round up with fixtures it was composed too early to include,
+     * leaving the existing card — and everyone's predictions on it — alone.
+     */
+    @PostMapping("/gameweeks/{id}/fixtures")
+    public GameweekView addFixtures(@PathVariable long id, @Valid @RequestBody SetFixturesRequest request) {
+        return gameweekService.addFixtures(id, request.matchIds());
+    }
+
     @PostMapping("/gameweeks/{id}/publish")
     public GameweekView publish(@PathVariable long id) {
         return gameweekService.publish(id);

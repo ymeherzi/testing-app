@@ -256,6 +256,15 @@ export function useAdminActions() {
       }),
     onSettled: invalidate,
   })
+  /** Tops a card up, leaving the fixtures already on it — and their predictions — alone. */
+  const addFixtures = useMutation({
+    mutationFn: (input: { gameweekId: number; matchIds: number[] }) =>
+      api<GameweekView>(`/api/admin/gameweeks/${input.gameweekId}/fixtures`, {
+        method: 'POST',
+        body: JSON.stringify({ matchIds: input.matchIds }),
+      }),
+    onSettled: invalidate,
+  })
   const publish = useMutation({
     mutationFn: (gameweekId: number) =>
       api<GameweekView>(`/api/admin/gameweeks/${gameweekId}/publish`, { method: 'POST' }),
@@ -273,5 +282,5 @@ export function useAdminActions() {
       }),
     onSettled: invalidate,
   })
-  return { createGameweek, composeGameweek, setFixtures, publish, sync, simulateResult }
+  return { createGameweek, composeGameweek, setFixtures, addFixtures, publish, sync, simulateResult }
 }

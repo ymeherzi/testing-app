@@ -62,16 +62,31 @@ function FixtureRow({
   )
 }
 
+function AddFixtureButton({ open, onToggle, label }: { open: boolean; onToggle: () => void; label: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={open}
+      className="rounded-xl border border-emerald-600 px-3 py-1.5 text-xs font-semibold text-emerald-300 active:bg-emerald-900/40"
+    >
+      {label}
+    </button>
+  )
+}
+
 /**
  * A round to prepare: one button composes it, then each fixture can be
- * swapped for another from the same window.
+ * swapped for another from the same window, or the card topped up with one
+ * more.
  */
 export function RoundComposer({ spec, existing }: { spec: RoundSpec; existing?: GameweekView }) {
   const t = useT()
-  const { composeGameweek, setFixtures, publish } = useAdminActions()
+  const { composeGameweek, setFixtures, addFixtures, publish } = useAdminActions()
   const [swapping, setSwapping] = useState<number | null>(null)
+  const [adding, setAdding] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const suggestions = useAdminSuggestions(spec.from, spec.to, swapping !== null)
+  const suggestions = useAdminSuggestions(spec.from, spec.to, swapping !== null || adding)
 
   const run = async (action: () => Promise<unknown>) => {
     setError(null)
@@ -104,8 +119,32 @@ export function RoundComposer({ spec, existing }: { spec: RoundSpec; existing?: 
     return run(() => setFixtures.mutateAsync({ gameweekId: existing.id, matchIds }))
   }
 
+  // one panel, two purposes: opening either mode closes the other
+  const openAdd = () => {
+    setSwapping(null)
+    setAdding(!adding)
+  }
+  const openSwap = (fixtureId: number) => {
+    setAdding(false)
+    setSwapping(swapping === fixtureId ? null : fixtureId)
+  }
+
+  /** Adds one more fixture, leaving the rest of the card untouched. */
+  const add = (match: MatchView) => {
+    if (!existing) {
+      return
+    }
+    setAdding(false)
+    return run(() => addFixtures.mutateAsync({ gameweekId: existing.id, matchIds: [match.id] }))
+  }
+
   const chosen = new Set(existing?.fixtures.map((f) => f.matchId) ?? [])
-  const alternatives = (suggestions.data ?? []).filter((s: SuggestionView) => !chosen.has(s.match.id))
+  const alternatives = (suggestions.data ?? []).filter(
+    (s: SuggestionView) =>
+      !chosen.has(s.match.id) &&
+      // a kicked-off match cannot be added to a card: nobody could predict it
+      (!adding || new Date(s.match.kickoffUtc).getTime() > Date.now()),
+  )
 
   return (
     <section className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950 p-4">
@@ -141,6 +180,7 @@ export function RoundComposer({ spec, existing }: { spec: RoundSpec; existing?: 
             >
               {t('admin.publish')}
             </button>
+            <AddFixtureButton open={adding} onToggle={openAdd} label={t('admin.addFixture')} />
             {/* fixtures keep arriving — a cup final imported after the first
                 attempt is invisible without a way to ask for a fresh card */}
             <button
@@ -153,7 +193,14 @@ export function RoundComposer({ spec, existing }: { spec: RoundSpec; existing?: 
             </button>
           </div>
         ) : (
-          <span className="rounded-lg bg-slate-800 px-2 py-1 text-xs text-slate-300">{existing.status}</span>
+          <div className="flex shrink-0 flex-col items-end gap-2">
+            <span className="rounded-lg bg-slate-800 px-2 py-1 text-xs text-slate-300">{existing.status}</span>
+            {/* a published round is exactly when a thin card shows; topping it
+                up adds a fixture without disturbing the predictions already in */}
+            {existing.status === 'PUBLISHED' && (
+              <AddFixtureButton open={adding} onToggle={openAdd} label={t('admin.addFixture')} />
+            )}
+          </div>
         )}
       </header>
 
@@ -171,7 +218,7 @@ export function RoundComposer({ spec, existing }: { spec: RoundSpec; existing?: 
                 existing.status === 'DRAFT' ? (
                   <button
                     type="button"
-                    onClick={() => setSwapping(swapping === fixture.fixtureId ? null : fixture.fixtureId)}
+                    onClick={() => openSwap(fixture.fixtureId)}
                     className="shrink-0 text-xs font-medium text-emerald-400 underline"
                   >
                     {t('admin.replace')}
@@ -183,14 +230,16 @@ export function RoundComposer({ spec, existing }: { spec: RoundSpec; existing?: 
         </ul>
       )}
 
-      {swapping !== null && (
+      {(swapping !== null || adding) && (
         <div className="space-y-2 rounded-xl border border-emerald-900/60 bg-slate-900/60 p-3">
-          <p className="text-xs uppercase tracking-wide text-slate-500">{t('admin.pickReplacement')}</p>
+          <p className="text-xs uppercase tracking-wide text-slate-500">
+            {adding ? t('admin.pickAddition') : t('admin.pickReplacement')}
+          </p>
           {alternatives.length === 0 ? (
             <p className="text-sm text-slate-400">{t('admin.noAlternatives')}</p>
           ) : (
             <ul className="space-y-2">
-              {alternatives.slice(0, 12).map((s) => (
+              {alternatives.slice(0, 30).map((s) => (
                 <FixtureRow
                   key={s.match.id}
                   fixture={s.match}
@@ -200,10 +249,10 @@ export function RoundComposer({ spec, existing }: { spec: RoundSpec; existing?: 
                   action={
                     <button
                       type="button"
-                      onClick={() => swap(swapping, s.match)}
+                      onClick={() => (adding ? add(s.match) : swap(swapping!, s.match))}
                       className="shrink-0 rounded-lg bg-emerald-500 px-3 py-1 text-xs font-semibold text-emerald-950"
                     >
-                      {t('admin.choose')}
+                      {adding ? t('admin.add') : t('admin.choose')}
                     </button>
                   }
                 />

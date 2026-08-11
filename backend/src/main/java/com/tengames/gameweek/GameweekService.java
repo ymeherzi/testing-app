@@ -227,21 +227,80 @@ public class GameweekService {
         if (gameweek.getStatus() != Gameweek.Status.DRAFT) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Fixtures can only be edited on a DRAFT gameweek");
         }
+        List<Match> selected = requireMatches(matchIds);
+        // Reconcile rather than wipe and rebuild. Predictions hang off the
+        // fixture row with "on delete cascade", so deleting every row to swap
+        // one fixture threw away everybody's card — the eight that stayed
+        // included.
+        Map<Long, GameweekFixture> current = fixtures.findByGameweekIdOrderByMatchKickoffUtcAsc(gameweekId).stream()
+                .collect(Collectors.toMap(fixture -> fixture.getMatch().getId(), Function.identity()));
+        List<GameweekFixture> dropped = current.entrySet().stream()
+                .filter(entry -> !matchIds.contains(entry.getKey()))
+                .map(Map.Entry::getValue)
+                .toList();
+        fixtures.deleteAll(dropped);
+        fixtures.saveAll(selected.stream()
+                .filter(match -> !current.containsKey(match.getId()))
+                .map(match -> new GameweekFixture(gameweek, match))
+                .toList());
+        reframeWindow(gameweek, selected);
+        return viewForAdmin(gameweek);
+    }
+
+    /**
+     * Adds fixtures to a round without touching the ones already on it.
+     *
+     * <p>A card composed early is composed from whatever had been synced by
+     * then: J0 opened with eight because the cups had not landed yet. Rather
+     * than recompose — which reshuffles the whole card, and is refused once the
+     * round is published — the editor tops it up.
+     *
+     * <p>Allowed on a published round too, since that is exactly when the gap
+     * shows. A match that has already kicked off is refused: nobody can be
+     * asked to predict it now.
+     */
+    @Transactional
+    public GameweekView addFixtures(long gameweekId, List<Long> matchIds) {
+        Gameweek gameweek = requireGameweek(gameweekId);
+        if (gameweek.getStatus() == Gameweek.Status.SCORED) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "A scored gameweek is closed");
+        }
+        List<Match> selected = requireMatches(matchIds);
+        Instant now = clock.instant();
+        if (selected.stream().anyMatch(match -> !match.getKickoffUtc().isAfter(now))) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "That match has already kicked off");
+        }
+        List<GameweekFixture> existing = fixtures.findByGameweekIdOrderByMatchKickoffUtcAsc(gameweekId);
+        java.util.Set<Long> present = existing.stream().map(fixture -> fixture.getMatch().getId())
+                .collect(Collectors.toSet());
+        fixtures.saveAll(selected.stream()
+                .filter(match -> !present.contains(match.getId()))
+                .map(match -> new GameweekFixture(gameweek, match))
+                .toList());
+        List<Match> all = new ArrayList<>(existing.stream().map(GameweekFixture::getMatch).toList());
+        selected.stream().filter(match -> !present.contains(match.getId())).forEach(all::add);
+        reframeWindow(gameweek, all);
+        return viewForAdmin(gameweek);
+    }
+
+    private List<Match> requireMatches(List<Long> matchIds) {
         List<Match> selected = matches.findAllById(matchIds);
         if (selected.size() != matchIds.stream().distinct().count()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "One or more match ids do not exist");
         }
-        fixtures.deleteByGameweekId(gameweekId);
-        fixtures.flush();
-        fixtures.saveAll(selected.stream().map(match -> new GameweekFixture(gameweek, match)).toList());
-        // The window follows the fixtures rather than the other way round: a
-        // round may run Friday to the Tuesday after, and nobody should have to
-        // describe that by hand for it to be right.
+        return selected;
+    }
+
+    /**
+     * The window follows the fixtures rather than the other way round: a round
+     * may run Friday to the Tuesday after, and nobody should have to describe
+     * that by hand for it to be right.
+     */
+    private void reframeWindow(Gameweek gameweek, List<Match> selected) {
         selected.stream().map(Match::getKickoffUtc).min(Instant::compareTo)
                 .ifPresent(first -> gameweek.setWindow(first,
                         selected.stream().map(Match::getKickoffUtc).max(Instant::compareTo)
                                 .orElse(first).plus(java.time.Duration.ofHours(3))));
-        return viewForAdmin(gameweek);
     }
 
     @Transactional
