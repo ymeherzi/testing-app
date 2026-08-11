@@ -67,8 +67,11 @@ export function AdminPage() {
       title: t('admin.roundZero'),
       season: '2026-27',
       weekIndex: 0,
-      from: '2026-08-15',
-      to: '2026-08-16',
+      // widened from the weekend alone: only La Liga played on 15-16, which
+      // gave a card of five. Friday to Tuesday catches the cup finals and the
+      // opening rounds either side.
+      from: '2026-08-14',
+      to: '2026-08-18',
       countsTowardsTable: false,
     },
     {

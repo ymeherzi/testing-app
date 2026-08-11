@@ -84,7 +84,7 @@ export const fr: Messages = {
   'admin.noAlternatives': 'Aucun autre match sur cette période',
   'admin.warmUp': 'Journée blanche — ne compte pas',
   'admin.advanced': 'Outils avancés',
-  'admin.roundZero': 'Journée 0 — blanche, 15-16 août',
+  'admin.roundZero': 'Journée 0 — blanche, 14-18 août',
   'admin.roundOne': 'Journée 1 — 21 août',
 
   'rules.title': 'Règles du jeu',

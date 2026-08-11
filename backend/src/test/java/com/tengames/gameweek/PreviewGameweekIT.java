@@ -95,6 +95,10 @@ class PreviewGameweekIT {
         GameweekView draft = gameweekService.createDraft(season, 1, Gameweek.Type.WEEKEND,
                 now.minus(Duration.ofDays(60)), now.minus(Duration.ofDays(59)), counts);
         gameweekService.setFixtures(draft.id(), matchIds);
+        // setFixtures derives the window from the fixtures, which would drag
+        // these rounds back over "now"; push them out again before publishing.
+        gameweekService.rescheduleDraft(draft.id(), now.minus(Duration.ofDays(60)),
+                now.minus(Duration.ofDays(59)), counts);
         GameweekView published = gameweekService.publish(draft.id());
         assertThat(published.countsTowardsTable()).isEqualTo(counts);
         return published.id();

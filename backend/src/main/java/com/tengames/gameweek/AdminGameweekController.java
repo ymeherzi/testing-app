@@ -146,6 +146,10 @@ public class AdminGameweekController {
         // Season and week index are unique, and an empty draft from an earlier
         // attempt is the normal state to find here. Fill it rather than fail.
         GameweekView round = gameweekService.findDraft(request.season(), request.weekIndex())
+                // an existing draft follows the window it is composed over,
+                // otherwise it would hold fixtures outside its own dates
+                .map(draft -> gameweekService.rescheduleDraft(draft.id(), request.windowStart(),
+                        request.windowEnd(), request.countsTowardsTable()))
                 .orElseGet(() -> gameweekService.createDraft(request.season(), request.weekIndex(),
                         request.type(), request.windowStart(), request.windowEnd(),
                         request.countsTowardsTable()));

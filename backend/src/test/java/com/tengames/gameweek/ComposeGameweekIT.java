@@ -153,6 +153,23 @@ class ComposeGameweekIT {
     }
 
     @Test
+    void recomposingOverNewDatesMovesTheRoundWithIt() throws Exception {
+        Instant from = Instant.now().minus(Duration.ofDays(1));
+        Instant narrow = Instant.now().plus(Duration.ofDays(2));
+        Instant wide = Instant.now().plus(Duration.ofDays(6));
+        String body = """
+                {"season":"9980-87","weekIndex":0,"windowStart":"%s","windowEnd":"%s",
+                 "countsTowardsTable":false,"size":10}""";
+
+        compose(body.formatted(from, narrow));
+        JsonNode widened = compose(body.formatted(from, wide));
+
+        // a round holding fixtures outside its own window quietly breaks
+        // "current gameweek" and the window a league records on joining
+        assertThat(Instant.parse(widened.get("windowEnd").asText())).isAfter(narrow);
+    }
+
+    @Test
     void aBadRequestSaysWhichFieldIsWrong() throws Exception {
         String body = composeBody("", 1, true, 10);
 

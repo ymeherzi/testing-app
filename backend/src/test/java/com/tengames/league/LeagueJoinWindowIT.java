@@ -84,6 +84,10 @@ class LeagueJoinWindowIT {
                 .stream().map(Match::getId).limit(4).toList();
         long id = gameweekService.createDraft(season, index, Gameweek.Type.WEEKEND, windowStart, windowEnd).id();
         gameweekService.setFixtures(id, matchIds);
+        // setFixtures derives the window from the fixtures; this test is about
+        // the join window specifically, so it states the dates it needs after
+        // the fixtures rather than before.
+        gameweekService.rescheduleDraft(id, windowStart, windowEnd, true);
         gameweekService.publish(id);
         return id;
     }

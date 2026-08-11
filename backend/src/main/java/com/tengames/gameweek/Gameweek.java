@@ -93,6 +93,11 @@ public class Gameweek {
         return windowStart;
     }
 
+    public void setWindow(Instant windowStart, Instant windowEnd) {
+        this.windowStart = windowStart;
+        this.windowEnd = windowEnd;
+    }
+
     public Instant getWindowEnd() {
         return windowEnd;
     }

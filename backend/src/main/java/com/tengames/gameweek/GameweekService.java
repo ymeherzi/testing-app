@@ -181,6 +181,27 @@ public class GameweekService {
                 });
     }
 
+    /**
+     * Moves a draft's window, so recomposing over different dates leaves the
+     * round describing the fixtures it actually holds. A window that no longer
+     * covers its own matches quietly breaks "current gameweek" and the window
+     * a league records when a member joins.
+     */
+    @Transactional
+    public GameweekView rescheduleDraft(long gameweekId, Instant windowStart, Instant windowEnd,
+                                        boolean countsTowardsTable) {
+        Gameweek gameweek = requireGameweek(gameweekId);
+        if (gameweek.getStatus() != Gameweek.Status.DRAFT) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Only DRAFT gameweeks can be rescheduled");
+        }
+        if (!windowEnd.isAfter(windowStart)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "windowEnd must be after windowStart");
+        }
+        gameweek.setWindow(windowStart, windowEnd);
+        gameweek.setCountsTowardsTable(countsTowardsTable);
+        return viewForAdmin(gameweek);
+    }
+
     /** An ordinary round, counting towards the season standings. */
     @Transactional
     public GameweekView createDraft(String season, int weekIndex, Gameweek.Type type,
@@ -213,6 +234,13 @@ public class GameweekService {
         fixtures.deleteByGameweekId(gameweekId);
         fixtures.flush();
         fixtures.saveAll(selected.stream().map(match -> new GameweekFixture(gameweek, match)).toList());
+        // The window follows the fixtures rather than the other way round: a
+        // round may run Friday to the Tuesday after, and nobody should have to
+        // describe that by hand for it to be right.
+        selected.stream().map(Match::getKickoffUtc).min(Instant::compareTo)
+                .ifPresent(first -> gameweek.setWindow(first,
+                        selected.stream().map(Match::getKickoffUtc).max(Instant::compareTo)
+                                .orElse(first).plus(java.time.Duration.ofHours(3))));
         return viewForAdmin(gameweek);
     }
 

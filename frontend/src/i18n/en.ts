@@ -86,7 +86,7 @@ export const en = {
   'admin.noAlternatives': 'No other fixture in this window',
   'admin.warmUp': 'Warm-up — not counted',
   'admin.advanced': 'Advanced tools',
-  'admin.roundZero': 'Round 0 — warm-up, 15-16 August',
+  'admin.roundZero': 'Round 0 — warm-up, 14-18 August',
   'admin.roundOne': 'Round 1 — 21 August',
 
   'rules.title': 'Game rules',
