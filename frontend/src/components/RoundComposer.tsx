@@ -33,12 +33,15 @@ function FixtureRow({
   kickoffUtc,
   reasons,
   action,
+  footer,
 }: {
   fixture: Fixture
   competition: string
   kickoffUtc: string
   reasons?: string[]
   action?: React.ReactNode
+  /** Shown under the row: the confirmation before a fixture is taken off. */
+  footer?: React.ReactNode
 }) {
   return (
     <li className="rounded-xl border border-slate-800 bg-slate-900 p-3">
@@ -58,6 +61,7 @@ function FixtureRow({
         </p>
         {action}
       </div>
+      {footer}
     </li>
   )
 }
@@ -82,9 +86,10 @@ function AddFixtureButton({ open, onToggle, label }: { open: boolean; onToggle: 
  */
 export function RoundComposer({ spec, existing }: { spec: RoundSpec; existing?: GameweekView }) {
   const t = useT()
-  const { composeGameweek, setFixtures, addFixtures, publish } = useAdminActions()
+  const { composeGameweek, removeFixture, replaceFixture, addFixtures, publish } = useAdminActions()
   const [swapping, setSwapping] = useState<number | null>(null)
   const [adding, setAdding] = useState(false)
+  const [removing, setRemoving] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
   const suggestions = useAdminSuggestions(spec.from, spec.to, swapping !== null || adding)
 
@@ -109,14 +114,24 @@ export function RoundComposer({ spec, existing }: { spec: RoundSpec; existing?: 
       }),
     )
 
-  /** Replaces one fixture, keeping the rest of the card as it is. */
+  /** Replaces one fixture, keeping the rest of the card — and its predictions — as it is. */
   const swap = (fixtureId: number, replacement: MatchView) => {
     if (!existing) {
       return
     }
-    const matchIds = existing.fixtures.map((f) => (f.fixtureId === fixtureId ? replacement.id : f.matchId))
     setSwapping(null)
-    return run(() => setFixtures.mutateAsync({ gameweekId: existing.id, matchIds }))
+    return run(() =>
+      replaceFixture.mutateAsync({ gameweekId: existing.id, fixtureId, matchId: replacement.id }),
+    )
+  }
+
+  /** Takes one fixture off the card. What players predicted on it goes too. */
+  const remove = (fixtureId: number) => {
+    if (!existing) {
+      return
+    }
+    setRemoving(null)
+    return run(() => removeFixture.mutateAsync({ gameweekId: existing.id, fixtureId }))
   }
 
   // one panel, two purposes: opening either mode closes the other
@@ -215,14 +230,46 @@ export function RoundComposer({ spec, existing }: { spec: RoundSpec; existing?: 
               competition={fixture.competitionCode}
               kickoffUtc={fixture.kickoffUtc}
               action={
-                existing.status === 'DRAFT' ? (
-                  <button
-                    type="button"
-                    onClick={() => openSwap(fixture.fixtureId)}
-                    className="shrink-0 text-xs font-medium text-emerald-400 underline"
-                  >
-                    {t('admin.replace')}
-                  </button>
+                // a published round is exactly when a card is looked at properly:
+                // one fixture too many, or one that has since been called off
+                existing.status !== 'SCORED' ? (
+                  <span className="flex shrink-0 items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => openSwap(fixture.fixtureId)}
+                      className="text-xs font-medium text-emerald-400 underline"
+                    >
+                      {t('admin.replace')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRemoving(removing === fixture.fixtureId ? null : fixture.fixtureId)}
+                      className="text-xs font-medium text-red-400 underline"
+                    >
+                      {t('admin.removeFixture')}
+                    </button>
+                  </span>
+                ) : undefined
+              }
+              footer={
+                removing === fixture.fixtureId ? (
+                  <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-slate-800 pt-2">
+                    <p className="w-full text-xs text-amber-300">{t('admin.removeWarning')}</p>
+                    <button
+                      type="button"
+                      onClick={() => remove(fixture.fixtureId)}
+                      className="rounded-lg bg-red-500 px-3 py-1.5 text-xs font-semibold text-red-950"
+                    >
+                      {t('admin.confirmRemove')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRemoving(null)}
+                      className="text-xs font-medium text-slate-400"
+                    >
+                      {t('admin.cancel')}
+                    </button>
+                  </div>
                 ) : undefined
               }
             />

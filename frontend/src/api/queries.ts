@@ -281,6 +281,23 @@ export function useAdminActions() {
       }),
     onSettled: invalidate,
   })
+  /** Takes one fixture off a card. The predictions on it go with it. */
+  const removeFixture = useMutation({
+    mutationFn: (input: { gameweekId: number; fixtureId: number }) =>
+      api<GameweekView>(`/api/admin/gameweeks/${input.gameweekId}/fixtures/${input.fixtureId}`, {
+        method: 'DELETE',
+      }),
+    onSettled: invalidate,
+  })
+  /** Swaps the match in one slot, leaving every other slot untouched. */
+  const replaceFixture = useMutation({
+    mutationFn: (input: { gameweekId: number; fixtureId: number; matchId: number }) =>
+      api<GameweekView>(`/api/admin/gameweeks/${input.gameweekId}/fixtures/${input.fixtureId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ matchId: input.matchId }),
+      }),
+    onSettled: invalidate,
+  })
   /** Tops a card up, leaving the fixtures already on it — and their predictions — alone. */
   const addFixtures = useMutation({
     mutationFn: (input: { gameweekId: number; matchIds: number[] }) =>
@@ -311,6 +328,6 @@ export function useAdminActions() {
       }),
     onSettled: invalidate,
   })
-  return { createGameweek, composeGameweek, setFixtures, addFixtures, publish, sync, simulateResult,
-           deleteAccount }
+  return { createGameweek, composeGameweek, setFixtures, addFixtures, removeFixture, replaceFixture,
+           publish, sync, simulateResult, deleteAccount }
 }

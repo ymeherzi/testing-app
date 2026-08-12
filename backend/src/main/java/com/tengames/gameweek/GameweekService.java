@@ -261,15 +261,9 @@ public class GameweekService {
      */
     @Transactional
     public GameweekView addFixtures(long gameweekId, List<Long> matchIds) {
-        Gameweek gameweek = requireGameweek(gameweekId);
-        if (gameweek.getStatus() == Gameweek.Status.SCORED) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "A scored gameweek is closed");
-        }
+        Gameweek gameweek = editableGameweek(gameweekId);
         List<Match> selected = requireMatches(matchIds);
-        Instant now = clock.instant();
-        if (selected.stream().anyMatch(match -> !match.getKickoffUtc().isAfter(now))) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "That match has already kicked off");
-        }
+        selected.forEach(this::requireNotStarted);
         List<GameweekFixture> existing = fixtures.findByGameweekIdOrderByMatchKickoffUtcAsc(gameweekId);
         java.util.Set<Long> present = existing.stream().map(fixture -> fixture.getMatch().getId())
                 .collect(Collectors.toSet());
@@ -281,6 +275,86 @@ public class GameweekService {
         selected.stream().filter(match -> !present.contains(match.getId())).forEach(all::add);
         reframeWindow(gameweek, all);
         return viewForAdmin(gameweek);
+    }
+
+    /**
+     * Takes one fixture off a round, on a published round as much as a draft.
+     *
+     * <p>A card gains a fixture too many, or holds a match that has since been
+     * called off; both are noticed after publishing, which is when anybody
+     * actually looks at the card.
+     *
+     * <p>Predictions on that fixture go with it — they cascade from the row —
+     * and that is the intent: a fixture nobody plays must not score. The screen
+     * says so before asking.
+     */
+    @Transactional
+    public GameweekView removeFixture(long gameweekId, long fixtureId) {
+        Gameweek gameweek = editableGameweek(gameweekId);
+        GameweekFixture fixture = requireFixture(gameweekId, fixtureId);
+        if (fixture.getMatch().hasResult()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "That match has been played — removing it would take back points already awarded");
+        }
+        if (fixtures.countByGameweekId(gameweekId) <= 1) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "A gameweek cannot be left with no fixtures");
+        }
+        fixtures.delete(fixture);
+        fixtures.flush();
+        reframeWindow(gameweek, fixtures.findByGameweekIdOrderByMatchKickoffUtcAsc(gameweekId).stream()
+                .map(GameweekFixture::getMatch).toList());
+        return viewForAdmin(gameweek);
+    }
+
+    /**
+     * Swaps the match in one slot for another, leaving every other slot — and
+     * the predictions hanging off it — exactly where it was.
+     */
+    @Transactional
+    public GameweekView replaceFixture(long gameweekId, long fixtureId, long matchId) {
+        Gameweek gameweek = editableGameweek(gameweekId);
+        GameweekFixture fixture = requireFixture(gameweekId, fixtureId);
+        if (fixture.getMatch().hasResult()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "That match has been played — replacing it would take back points already awarded");
+        }
+        Match replacement = requireMatches(List.of(matchId)).getFirst();
+        requireNotStarted(replacement);
+        if (fixtures.findByGameweekIdOrderByMatchKickoffUtcAsc(gameweekId).stream()
+                .anyMatch(other -> !other.getId().equals(fixtureId)
+                        && other.getMatch().getId().equals(matchId))) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "That match is already on this card");
+        }
+        // the row keeps its identity; only the match it points at changes, so
+        // nothing else on the card is disturbed
+        fixtures.delete(fixture);
+        fixtures.flush();
+        fixtures.save(new GameweekFixture(gameweek, replacement));
+        reframeWindow(gameweek, fixtures.findByGameweekIdOrderByMatchKickoffUtcAsc(gameweekId).stream()
+                .map(GameweekFixture::getMatch).toList());
+        return viewForAdmin(gameweek);
+    }
+
+    /** A round still open to editing: anything but one already scored. */
+    private Gameweek editableGameweek(long gameweekId) {
+        Gameweek gameweek = requireGameweek(gameweekId);
+        if (gameweek.getStatus() == Gameweek.Status.SCORED) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "A scored gameweek is closed");
+        }
+        return gameweek;
+    }
+
+    private GameweekFixture requireFixture(long gameweekId, long fixtureId) {
+        return fixtures.findByIdAndGameweekId(fixtureId, gameweekId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "That fixture is not on this gameweek"));
+    }
+
+    /** Nobody can be asked to predict a match that is already under way. */
+    private void requireNotStarted(Match match) {
+        if (!match.getKickoffUtc().isAfter(clock.instant())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "That match has already kicked off");
+        }
     }
 
     private List<Match> requireMatches(List<Long> matchIds) {

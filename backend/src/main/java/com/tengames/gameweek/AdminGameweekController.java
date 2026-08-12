@@ -16,6 +16,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -64,6 +65,9 @@ public class AdminGameweekController {
     }
 
     public record SetFixturesRequest(@NotEmpty List<Long> matchIds) {
+    }
+
+    public record ReplaceFixtureRequest(@NotNull Long matchId) {
     }
 
     /** A proposed fixture, with the reason it was picked so the editor can judge it. */
@@ -171,6 +175,25 @@ public class AdminGameweekController {
     @PostMapping("/gameweeks/{id}/fixtures")
     public GameweekView addFixtures(@PathVariable long id, @Valid @RequestBody SetFixturesRequest request) {
         return gameweekService.addFixtures(id, request.matchIds());
+    }
+
+    /**
+     * One slot at a time, and workable on a published round — which is when an
+     * editor actually looks at the card and finds a fixture too many, or one
+     * that has since been called off.
+     *
+     * <p>Per slot rather than by resending the whole card: the client cannot
+     * then overwrite a change it never saw.
+     */
+    @DeleteMapping("/gameweeks/{id}/fixtures/{fixtureId}")
+    public GameweekView removeFixture(@PathVariable long id, @PathVariable long fixtureId) {
+        return gameweekService.removeFixture(id, fixtureId);
+    }
+
+    @PutMapping("/gameweeks/{id}/fixtures/{fixtureId}")
+    public GameweekView replaceFixture(@PathVariable long id, @PathVariable long fixtureId,
+                                       @Valid @RequestBody ReplaceFixtureRequest request) {
+        return gameweekService.replaceFixture(id, fixtureId, request.matchId());
     }
 
     @PostMapping("/gameweeks/{id}/publish")

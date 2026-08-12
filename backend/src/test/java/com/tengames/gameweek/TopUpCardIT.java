@@ -26,6 +26,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -171,6 +172,103 @@ class TopUpCardIT {
                 .containsEntry(chosen.get(1), before.get(chosen.get(1)))
                 .containsKey(pool.get(3).getId())
                 .doesNotContainKey(chosen.get(2));
+    }
+
+    private int removeFixture(long gameweekId, long fixtureId, String token) throws Exception {
+        return mockMvc.perform(delete("/api/admin/gameweeks/%d/fixtures/%d".formatted(gameweekId, fixtureId))
+                        .header("Authorization", "Bearer " + token))
+                .andReturn().getResponse().getStatus();
+    }
+
+    @Test
+    void aFixtureCanBeTakenOffAPublishedRound() throws Exception {
+        List<Long> chosen = pool.subList(0, 3).stream().map(Match::getId).toList();
+        long id = draftWith("9970-07", chosen);
+        gameweekService.publish(id);
+        Map<Long, Long> before = rowsByMatch(id);
+
+        assertThat(removeFixture(id, before.get(chosen.get(2)), adminToken)).isEqualTo(200);
+
+        Map<Long, Long> after = rowsByMatch(id);
+        assertThat(after).hasSize(2).doesNotContainKey(chosen.get(2))
+                // the rows that stayed are the same rows, predictions and all
+                .containsEntry(chosen.get(0), before.get(chosen.get(0)))
+                .containsEntry(chosen.get(1), before.get(chosen.get(1)));
+    }
+
+    @Test
+    void thePredictionsOnTheOtherFixturesSurviveARemoval() throws Exception {
+        long id = draftWith("9970-08", pool.subList(0, 3).stream().map(Match::getId).toList());
+        gameweekService.publish(id);
+        JsonNode before = playerView(id);
+        long predicted = predict(id, before.get("fixtures").get(0).get("fixtureId").asLong());
+        long doomed = before.get("fixtures").get(2).get("fixtureId").asLong();
+
+        assertThat(removeFixture(id, doomed, adminToken)).isEqualTo(200);
+
+        JsonNode kept = playerView(id).get("fixtures").valueStream()
+                .filter(f -> f.get("fixtureId").asLong() == predicted)
+                .findFirst().orElseThrow();
+        assertThat(kept.get("prediction").get("homeGoals").asInt()).isEqualTo(2);
+    }
+
+    @Test
+    void theLastFixtureCannotBeTakenAway() throws Exception {
+        List<Long> chosen = pool.subList(0, 1).stream().map(Match::getId).toList();
+        long id = draftWith("9970-09", chosen);
+        gameweekService.publish(id);
+
+        // a published round with no fixtures is a round nobody can play
+        assertThat(removeFixture(id, rowsByMatch(id).get(chosen.getFirst()), adminToken)).isEqualTo(409);
+    }
+
+    @Test
+    void aMatchThatHasBeenPlayedStaysOnTheCard() throws Exception {
+        List<Long> chosen = pool.subList(0, 2).stream().map(Match::getId).toList();
+        long id = draftWith("9970-10", chosen);
+        Match played = matches.findById(chosen.getFirst()).orElseThrow();
+        played.setScore(2, 1);
+        played.setStatus(com.tengames.catalog.MatchStatus.FINISHED);
+        matches.save(played);
+
+        // its points are already in the table; taking it back would rewrite it
+        assertThat(removeFixture(id, rowsByMatch(id).get(chosen.getFirst()), adminToken)).isEqualTo(409);
+    }
+
+    @Test
+    void oneSlotCanBeSwappedOnAPublishedRound() throws Exception {
+        List<Long> chosen = pool.subList(0, 2).stream().map(Match::getId).toList();
+        long id = draftWith("9970-11", chosen);
+        gameweekService.publish(id);
+        Map<Long, Long> before = rowsByMatch(id);
+        long replacement = pool.get(2).getId();
+
+        mockMvc.perform(put("/api/admin/gameweeks/%d/fixtures/%d".formatted(id, before.get(chosen.get(1))))
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"matchId\":%d}".formatted(replacement)))
+                .andExpect(status().isOk());
+
+        Map<Long, Long> after = rowsByMatch(id);
+        assertThat(after).containsKey(replacement).doesNotContainKey(chosen.get(1))
+                .containsEntry(chosen.get(0), before.get(chosen.get(0)));
+    }
+
+    @Test
+    void removingIsAdminOnly() throws Exception {
+        List<Long> chosen = pool.subList(0, 2).stream().map(Match::getId).toList();
+        long id = draftWith("9970-12", chosen);
+
+        assertThat(removeFixture(id, rowsByMatch(id).get(chosen.getFirst()), playerToken)).isEqualTo(403);
+    }
+
+    @Test
+    void aFixtureFromAnotherRoundIsNotFound() throws Exception {
+        long mine = draftWith("9970-13", pool.subList(0, 2).stream().map(Match::getId).toList());
+        long other = draftWith("9970-14", pool.subList(2, 4).stream().map(Match::getId).toList());
+        long strangerFixture = rowsByMatch(other).values().iterator().next();
+
+        assertThat(removeFixture(mine, strangerFixture, adminToken)).isEqualTo(404);
     }
 
     @Test
