@@ -97,7 +97,11 @@ public class EspnLiveScoreService {
             if (match.getProviderRef() == null) {
                 match.setProviderRef("espn:" + event.id());
             }
-            match.setScore(event.homeScore(), event.awayScore());
+            // "0" is what ESPN calls the score of a match that has not started.
+            // Only a game in progress or over has a score to record.
+            if ("in".equals(event.state()) || "post".equals(event.state())) {
+                match.setScore(event.homeScore(), event.awayScore());
+            }
             MatchStatus newStatus = switch (event.state()) {
                 case "in" -> MatchStatus.IN_PLAY;
                 case "post" -> MatchStatus.FINISHED;

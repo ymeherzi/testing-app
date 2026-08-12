@@ -138,6 +138,11 @@ export const en = {
   'rules.lockBody': 'Each match locks at its own kickoff, not at the start of the gameweek. Predictions stay private until then.',
   'rules.gameweekTitle': 'Gameweeks',
   'rules.gameweekBody': 'A gameweek is a hand-picked set of matches, often from several competitions. It can span two or three days, weekend or midweek.',
+  'rules.cupTitle': 'Cup ties',
+  'rules.cupBody':
+    'A cup tie is scored on the result at the end of the match, extra time included. A shootout ' +
+    'does not count: going through 5-4 on penalties is still a 1-1 for your points. One rule for ' +
+    'every competition, nothing special to remember.',
   'rules.leaguesTitle': 'Leagues',
   'rules.leaguesBody': 'The global, country and club tables are automatic. Private leagues are on invitation: share the link and your friends join straight away. Joining late never costs you points elsewhere.',
   'rules.backToPredict': 'Back to predictions',

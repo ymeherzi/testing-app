@@ -162,9 +162,18 @@ public class EspnCupImporter {
                         parsed.kickoff(), status(parsed.state()), ref)));
         match.setKickoffUtc(parsed.kickoff());
         match.setStatus(status(parsed.state()));
-        match.setScore(parsed.homeScore(), parsed.awayScore());
+        // ESPN sends "0" as the score of a match that has not kicked off, and
+        // storing it makes the card announce a 0-0 days early — the whole
+        // gameweek then looks played. A score only exists once the game does.
+        if (hasStarted(parsed.state())) {
+            match.setScore(parsed.homeScore(), parsed.awayScore());
+        }
         match.setLastSyncedAt(clock.instant());
         return true;
+    }
+
+    private static boolean hasStarted(String state) {
+        return "in".equals(state) || "post".equals(state);
     }
 
     private static MatchStatus status(String state) {

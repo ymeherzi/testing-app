@@ -116,16 +116,19 @@ export function MatchCard({ fixture, onSave }: Props) {
               )}
             </div>
           ) : (
-            // locked but no result yet: the user's prediction stays the headline
-            <div className="flex flex-col items-center gap-1 px-2">
-              <span className="text-2xl font-bold tabular-nums text-emerald-300">
+            // Locked, nothing played yet. The prediction is still what there is
+            // to show, but it must not be dressed as a result: shown large and
+            // in colour it read as "the app gave me the score I called".
+            <div className="flex flex-col items-center gap-0.5 px-2">
+              <span className="text-[0.65rem] uppercase tracking-wide text-slate-500">
+                {t(fixture.prediction ? 'match.yourCall' : 'match.noPrediction')}
+              </span>
+              <span className="text-xl font-semibold tabular-nums text-slate-400">
                 {fixture.prediction
                   ? `${fixture.prediction.homeGoals} : ${fixture.prediction.awayGoals}`
                   : '– : –'}
               </span>
-              <span className="text-xs text-slate-400">
-                {t(fixture.prediction ? 'match.yourCall' : 'match.noPrediction')}
-              </span>
+              <span className="text-[0.65rem] text-slate-500">{t('match.awaitingResult')}</span>
             </div>
           )
         ) : (

@@ -106,6 +106,21 @@ export function useTeamById(id: number | null) {
   })
 }
 
+/**
+ * Whether this device is actually subscribed, which is not the same question as
+ * whether the browser granted permission: a device can hold permission with no
+ * subscription at all — after turning them off, or after the site data was
+ * cleared — and it must then be offered the switch again.
+ */
+export function usePushSubscribed(enabled: boolean) {
+  return useQuery({
+    queryKey: ['push', 'subscribed'],
+    queryFn: () => api<{ subscribed: boolean }>('/api/push/subscriptions'),
+    enabled,
+    staleTime: 30_000,
+  })
+}
+
 export function useCompetitions(domesticOnly = false) {
   return useQuery({
     queryKey: ['competitions', domesticOnly],

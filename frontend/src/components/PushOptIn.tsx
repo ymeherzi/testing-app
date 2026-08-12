@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { disablePush, enablePush, pushAvailability } from '../lib/push'
+import { usePushSubscribed } from '../api/queries'
 import { readStored, writeStored } from '../lib/storage'
 import { useT } from '../i18n'
 
@@ -25,12 +27,22 @@ export function PushOptIn({ compact = false }: { compact?: boolean }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [dismissed, setDismissed] = useState(() => readStored(DISMISSED_KEY) === 'true')
+  const queryClient = useQueryClient()
+  // permission is what the browser granted; this is whether the device is
+  // actually registered with us. Holding one without the other is normal —
+  // after switching them off, or after the site data was cleared — and the
+  // screen used to offer nothing at all in that state.
+  const { data: registration } = usePushSubscribed(availability === 'granted' || availability === 'ready')
+  const subscribed = availability === 'granted' && registration?.subscribed === true
+  const canEnable = availability === 'ready' || (availability === 'granted' && registration?.subscribed === false)
+  const refresh = () => queryClient.invalidateQueries({ queryKey: ['push', 'subscribed'] })
 
   const enable = async () => {
     setBusy(true)
     setError(null)
     try {
       setAvailability((await enablePush()) ? 'granted' : 'denied')
+      refresh()
     } catch (e) {
       setError(e instanceof Error ? e.message : t('push.failed'))
     } finally {
@@ -42,7 +54,7 @@ export function PushOptIn({ compact = false }: { compact?: boolean }) {
     setBusy(true)
     try {
       await disablePush()
-      setAvailability('ready')
+      refresh()
     } catch (e) {
       setError(e instanceof Error ? e.message : t('push.failed'))
     } finally {
@@ -55,7 +67,7 @@ export function PushOptIn({ compact = false }: { compact?: boolean }) {
   }
   // on the predictions screen there is nothing to say once they are on, or
   // once the player has said no in the browser
-  if (compact && (availability === 'granted' || availability === 'denied' || dismissed)) {
+  if (compact && (subscribed || availability === 'denied' || dismissed)) {
     return null
   }
 
@@ -80,11 +92,11 @@ export function PushOptIn({ compact = false }: { compact?: boolean }) {
       <p className="text-xs text-slate-400">
         {availability === 'needs-install' && t('push.needsInstall')}
         {availability === 'denied' && t('push.denied')}
-        {availability === 'granted' && t('push.on')}
-        {availability === 'ready' && t('push.hint')}
+        {subscribed && t('push.on')}
+        {canEnable && t('push.hint')}
       </p>
       {error && <p className="text-xs text-red-400">{error}</p>}
-      {availability === 'ready' && (
+      {canEnable && (
         <button
           type="button"
           onClick={enable}
@@ -94,7 +106,7 @@ export function PushOptIn({ compact = false }: { compact?: boolean }) {
           {busy ? t('push.enabling') : t('push.enable')}
         </button>
       )}
-      {compact && availability === 'ready' && (
+      {compact && canEnable && (
         <button
           type="button"
           onClick={() => {
@@ -106,7 +118,7 @@ export function PushOptIn({ compact = false }: { compact?: boolean }) {
           {t('push.later')}
         </button>
       )}
-      {availability === 'granted' && !compact && (
+      {subscribed && !compact && (
         <button
           type="button"
           onClick={disable}

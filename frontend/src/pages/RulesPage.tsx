@@ -55,6 +55,10 @@ export function RulesPage() {
         <p className="text-sm text-slate-300">{t('rules.gameweekBody')}</p>
       </Section>
 
+      <Section title={t('rules.cupTitle')}>
+        <p className="text-sm text-slate-300">{t('rules.cupBody')}</p>
+      </Section>
+
       <Section title={t('rules.leaguesTitle')}>
         <p className="text-sm text-slate-300">{t('rules.leaguesBody')}</p>
       </Section>

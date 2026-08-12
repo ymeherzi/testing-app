@@ -118,6 +118,9 @@ public final class BigMatches {
      */
     private static final Map<String, Integer> COMPETITION_WEIGHT = Map.ofEntries(
             Map.entry("CL", 10),
+            // the winners of the two European cups, once a year: as close to a
+            // Champions League night as a single fixture gets
+            Map.entry("USCUP", 10),
             // a one-off final between two champions is the definition of a
             // fixture worth putting in front of players
             Map.entry("CSHIELD", 9),

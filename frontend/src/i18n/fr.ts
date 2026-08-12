@@ -136,6 +136,11 @@ export const fr: Messages = {
   'rules.lockBody': 'Chaque match se verrouille à son propre coup d\'envoi, pas au début de la journée. Les pronostics restent privés jusque-là.',
   'rules.gameweekTitle': 'Les journées',
   'rules.gameweekBody': 'Une journée est une sélection d\'affiches, souvent issues de plusieurs compétitions. Elle peut s\'étaler sur deux ou trois jours, en week-end comme en semaine.',
+  'rules.cupTitle': 'Les matchs de coupe',
+  'rules.cupBody':
+    "Un match de coupe se marque sur le score à la fin de la rencontre, prolongation comprise. " +
+    "Les tirs au but ne comptent pas : une qualification 5-4 aux tirs au but reste un 1-1 pour tes " +
+    "points. Une seule règle pour toutes les compétitions, rien de particulier à retenir.",
   'rules.leaguesTitle': 'Les ligues',
   'rules.leaguesBody': 'Les classements mondial, par pays et par club sont automatiques. Les ligues privées se rejoignent sur invitation : partage le lien et tes amis entrent aussitôt. Arriver en cours de route ne coûte jamais de points ailleurs.',
   'rules.backToPredict': 'Retour aux pronostics',
