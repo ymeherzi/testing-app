@@ -69,8 +69,9 @@ export function AdminPage() {
       weekIndex: 0,
       // widened from the weekend alone: only La Liga played on 15-16, which
       // gave a card of five. Friday to Tuesday catches the cup finals and the
-      // opening rounds either side.
-      from: '2026-08-14',
+      // opening rounds either side — and now the Wednesday before it, for the
+      // UEFA Super Cup, which is the warm-up round's whole point.
+      from: '2026-08-12',
       to: '2026-08-18',
       countsTowardsTable: false,
     },

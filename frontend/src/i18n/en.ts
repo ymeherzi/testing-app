@@ -124,7 +124,7 @@ export const en = {
   'admin.cancel': 'Cancel',
   'admin.accountIsAdmin': 'Administrator account',
   'admin.accountDeleted': 'Account {email} deleted.',
-  'admin.roundZero': 'Round 0 — warm-up, 14-18 August',
+  'admin.roundZero': 'Round 0 — warm-up, 12-18 August',
   'admin.roundOne': 'Round 1 — 21 August',
 
   'rules.title': 'Game rules',
