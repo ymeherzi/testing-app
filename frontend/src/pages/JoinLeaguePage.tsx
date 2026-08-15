@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useLeagueActions } from '../api/queries'
 import { ApiError } from '../api/client'
 import { useT } from '../i18n'
@@ -8,8 +8,12 @@ export function JoinLeaguePage() {
   const t = useT()
   const { join } = useLeagueActions()
   const navigate = useNavigate()
-  const [code, setCode] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  // An invite link that could not be honoured hands the code over here rather
+  // than leaving an empty box asking for something the player never had: the
+  // code was in the link they tapped.
+  const [params] = useSearchParams()
+  const [code, setCode] = useState(params.get('code')?.toUpperCase() ?? '')
+  const [error, setError] = useState<string | null>(params.get('reason'))
 
   const submit = async (event: FormEvent) => {
     event.preventDefault()

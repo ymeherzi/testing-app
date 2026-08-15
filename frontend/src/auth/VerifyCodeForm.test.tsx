@@ -78,6 +78,35 @@ describe('VerifyCodeForm', () => {
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/api/auth/resend', expect.anything()))
   })
 
+  it('empties the box after a refused code, so the next one can be typed', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(problem(400, 'That code is not right')))
+    renderForm()
+
+    typeCode('000000')
+    screen.getByRole('button', { name: 'Confirm' }).click()
+
+    await screen.findByText('That code is not right')
+    // six digits and maxLength=6: leaving them there means nothing can be typed
+    expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('')
+  })
+
+  it('confirms a resend and clears the old code', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ verificationRequired: true, email: 'player@example.com' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    ))
+    renderForm()
+    typeCode('111111')
+
+    screen.getByRole('button', { name: 'Send another code' }).click()
+
+    expect(await screen.findByText('A new code is on its way.')).toBeDefined()
+    // the code on its way is a different one
+    expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('')
+  })
+
   it('surfaces a mail delivery failure instead of pretending a code was sent', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
       problem(502, "We couldn't send your code — try again in a moment"),

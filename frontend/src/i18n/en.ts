@@ -156,6 +156,7 @@ export const en = {
   'verify.checking': 'Checking…',
   'verify.rememberDevice': "Remember this device — don't ask again for 60 days",
   'verify.resend': 'Send another code',
+  'verify.resending': 'Sending…',
   'verify.resent': 'A new code is on its way.',
   'verify.failed': 'That code did not work',
   'auth.clubOptional': 'Favourite club (optional)',

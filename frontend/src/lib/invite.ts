@@ -21,3 +21,12 @@ export function popPendingInvite(): string | null {
 export function peekPendingInvite(): string | null {
   return readStored(PENDING_KEY)
 }
+
+/**
+ * Forgets the stashed invite. Kept apart from reading it: a code must survive
+ * a failed attempt, a reload or a detour through the login screen, and only go
+ * once the server has actually answered.
+ */
+export function clearPendingInvite() {
+  clearStored(PENDING_KEY)
+}

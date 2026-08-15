@@ -154,6 +154,7 @@ export const fr: Messages = {
   'verify.checking': 'Vérification…',
   'verify.rememberDevice': 'Se souvenir de cet appareil — ne plus demander pendant 60 jours',
   'verify.resend': 'Renvoyer un code',
+  'verify.resending': 'Envoi…',
   'verify.resent': 'Un nouveau code arrive.',
   'verify.failed': "Ce code n'a pas fonctionné",
   'auth.clubOptional': 'Club favori (facultatif)',
