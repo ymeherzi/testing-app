@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useAdminActions, useAdminSuggestions } from '../api/queries'
+import { useAdminActions, useAdminSuggestions, useCompetitions } from '../api/queries'
 import type { GameweekView, MatchView, SuggestionView, Team } from '../api/types'
 import { TeamBadge } from './TeamBadge'
 import { kickoffDayLabel, kickoffTimeLabel } from '../lib/format'
@@ -90,8 +90,10 @@ export function RoundComposer({ spec, existing }: { spec: RoundSpec; existing?: 
   const [swapping, setSwapping] = useState<number | null>(null)
   const [adding, setAdding] = useState(false)
   const [removing, setRemoving] = useState<number | null>(null)
+  const [competition, setCompetition] = useState('')
   const [error, setError] = useState<string | null>(null)
   const suggestions = useAdminSuggestions(spec.from, spec.to, swapping !== null || adding)
+  const { data: catalogue } = useCompetitions()
 
   const run = async (action: () => Promise<unknown>) => {
     setError(null)
@@ -134,13 +136,16 @@ export function RoundComposer({ spec, existing }: { spec: RoundSpec; existing?: 
     return run(() => removeFixture.mutateAsync({ gameweekId: existing.id, fixtureId }))
   }
 
-  // one panel, two purposes: opening either mode closes the other
+  // one panel, two purposes: opening either mode closes the other, and the
+  // filter starts fresh each time it opens
   const openAdd = () => {
     setSwapping(null)
+    setCompetition('')
     setAdding(!adding)
   }
   const openSwap = (fixtureId: number) => {
     setAdding(false)
+    setCompetition('')
     setSwapping(swapping === fixtureId ? null : fixtureId)
   }
 
@@ -154,12 +159,23 @@ export function RoundComposer({ spec, existing }: { spec: RoundSpec; existing?: 
   }
 
   const chosen = new Set(existing?.fixtures.map((f) => f.matchId) ?? [])
-  const alternatives = (suggestions.data ?? []).filter(
+  const candidates = (suggestions.data ?? []).filter(
     (s: SuggestionView) =>
       !chosen.has(s.match.id) &&
       // a kicked-off match cannot be added to a card: nobody could predict it
       (!adding || new Date(s.match.kickoffUtc).getTime() > Date.now()),
   )
+  // Every competition with something to offer in this window, in ranked order.
+  // Built from the candidates themselves, so no option can lead to an empty
+  // list, and the names come from the catalogue the app already loads.
+  const competitionName = (code: string) =>
+    catalogue?.find((c) => c.code === code)?.name ?? code
+  const offered = [...new Set(candidates.map((s) => s.match.competitionCode))]
+  const alternatives = competition
+    ? candidates.filter((s) => s.match.competitionCode === competition)
+    : // unfiltered, the top of the ranking is the useful part; a whole weekend
+      // of fixtures is a list nobody reads to the end
+      candidates.slice(0, 30)
 
   return (
     <section className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950 p-4">
@@ -227,7 +243,7 @@ export function RoundComposer({ spec, existing }: { spec: RoundSpec; existing?: 
             <FixtureRow
               key={fixture.fixtureId}
               fixture={fixture}
-              competition={fixture.competitionCode}
+              competition={fixture.competitionName}
               kickoffUtc={fixture.kickoffUtc}
               action={
                 // a published round is exactly when a card is looked at properly:
@@ -282,15 +298,30 @@ export function RoundComposer({ spec, existing }: { spec: RoundSpec; existing?: 
           <p className="text-xs uppercase tracking-wide text-slate-500">
             {adding ? t('admin.pickAddition') : t('admin.pickReplacement')}
           </p>
+          {offered.length > 1 && (
+            <select
+              value={competition}
+              onChange={(e) => setCompetition(e.target.value)}
+              aria-label={t('admin.filterCompetition')}
+              className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+            >
+              <option value="">{t('admin.allCompetitions')}</option>
+              {offered.map((code) => (
+                <option key={code} value={code}>
+                  {competitionName(code)}
+                </option>
+              ))}
+            </select>
+          )}
           {alternatives.length === 0 ? (
             <p className="text-sm text-slate-400">{t('admin.noAlternatives')}</p>
           ) : (
             <ul className="space-y-2">
-              {alternatives.slice(0, 30).map((s) => (
+              {alternatives.map((s) => (
                 <FixtureRow
                   key={s.match.id}
                   fixture={s.match}
-                  competition={s.match.competitionCode}
+                  competition={competitionName(s.match.competitionCode)}
                   kickoffUtc={s.match.kickoffUtc}
                   reasons={s.reasons}
                   action={

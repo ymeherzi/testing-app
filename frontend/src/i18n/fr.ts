@@ -110,6 +110,8 @@ export const fr: Messages = {
   'admin.addFixture': 'Ajouter un match',
   'admin.add': 'Ajouter',
   'admin.pickAddition': 'Choisis le match à ajouter',
+  'admin.allCompetitions': 'Toutes les compétitions',
+  'admin.filterCompetition': 'Filtrer par compétition',
   'admin.noAlternatives': 'Aucun autre match sur cette période',
   'admin.warmUp': 'Journée blanche — ne compte pas',
   'admin.advanced': 'Outils avancés',

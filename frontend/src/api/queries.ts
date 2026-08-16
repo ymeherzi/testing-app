@@ -228,12 +228,19 @@ export function useAdminMatchPool(enabled: boolean) {
   })
 }
 
-/** Ranked alternatives for a window, so a swap is a choice, not a search. */
+/**
+ * Ranked alternatives for a window, so a swap is a choice, not a search.
+ *
+ * <p>The whole window rather than the top of it: the ranking pushes a
+ * Championship Saturday below everything else, and a card that cannot be
+ * reached is a card that does not exist. The screen filters what it shows;
+ * this is an admin-only call over a few days, so it is a few dozen rows.
+ */
 export function useAdminSuggestions(from: string, to: string, enabled: boolean) {
   return useQuery({
     queryKey: ['admin', 'suggestions', from, to],
     queryFn: () =>
-      api<SuggestionView[]>(`/api/admin/gameweeks/suggestions?from=${from}&to=${to}&size=40`),
+      api<SuggestionView[]>(`/api/admin/gameweeks/suggestions?from=${from}&to=${to}&size=200`),
     enabled,
   })
 }

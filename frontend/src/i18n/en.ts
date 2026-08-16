@@ -112,6 +112,8 @@ export const en = {
   'admin.addFixture': 'Add a fixture',
   'admin.add': 'Add',
   'admin.pickAddition': 'Pick the fixture to add',
+  'admin.allCompetitions': 'All competitions',
+  'admin.filterCompetition': 'Filter by competition',
   'admin.noAlternatives': 'No other fixture in this window',
   'admin.warmUp': 'Warm-up — not counted',
   'admin.advanced': 'Advanced tools',
