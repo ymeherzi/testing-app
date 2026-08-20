@@ -31,7 +31,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Import({TestcontainersConfiguration.class, SignupRulesIT.NoSuchDomainConfig.class})
 @ActiveProfiles("test")
-@TestPropertySource(properties = "app.auth.check-email-domain=true")
+@TestPropertySource(properties = {"app.auth.check-email-domain=true",
+        "app.auth.check-breached-passwords=true"})
 class SignupRulesIT {
 
     /** One domain does not exist and the rest do: no test may depend on real DNS. */
@@ -43,6 +44,19 @@ class SignupRulesIT {
             return domain -> domain.equals("asba.fr")
                     ? MailDomainLookup.Verdict.MISSING
                     : MailDomainLookup.Verdict.ACCEPTS;
+        }
+
+        /**
+         * "chocolate1" is the real thing: it clears every offline rule we have
+         * and has been seen 567,912 times in breaches. Stubbed rather than
+         * fetched — no test may depend on somebody else's service.
+         */
+        @Bean
+        @Primary
+        BreachedPasswords onlyChocolateLeaked() {
+            return password -> password.equals("chocolate1")
+                    ? BreachedPasswords.Verdict.BREACHED
+                    : BreachedPasswords.Verdict.CLEAN;
         }
     }
 
@@ -67,6 +81,25 @@ class SignupRulesIT {
     @Test
     void aPasswordOfRepeatedCharactersIsRefused() throws Exception {
         signup("weak-%s@example.com".formatted(UUID.randomUUID()), "1234123412", 400, "password.repeated");
+    }
+
+    @Test
+    void aPasswordFromAKnownBreachIsRefused() throws Exception {
+        // it passes every rule PasswordPolicy has: ten characters, no
+        // repetition, no keyboard run, not on our short list
+        signup("leaked-%s@example.com".formatted(UUID.randomUUID()), "chocolate1", 400,
+                "password.breached");
+    }
+
+    @Test
+    void aPasswordNobodyHasLeakedGoesThrough() throws Exception {
+        mockMvc.perform(post("/api/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email": "clean-%s@example.com", "password": "vivelefoot10",
+                                 "displayName": "Alex"}
+                                """.formatted(UUID.randomUUID())))
+                .andExpect(status().isOk());
     }
 
     @Test

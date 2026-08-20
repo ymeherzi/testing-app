@@ -49,6 +49,7 @@ export const en = {
   'password.sequence': 'That is a straight run along the keyboard — too easy to guess.',
   'password.common': "That password is on every attacker's list — pick another.",
   'password.personal': 'Leave your name and email address out of your password.',
+  'password.breached': "That password has appeared in known data breaches — it is in every attacker's dictionary by now. Pick another one.",
 
   'auth.forgotPassword': 'Forgot your password?',
   'forgot.title': 'Reset your password',
@@ -130,7 +131,7 @@ export const en = {
   'admin.accountIsAdmin': 'Administrator account',
   'admin.accountDeleted': 'Account {email} deleted.',
   'admin.roundZero': 'Round 0 — warm-up, 12-18 August',
-  'admin.roundOne': 'Round 1 — 21 August',
+  'admin.roundOne': 'Round 1 — 21-24 August',
 
   'rules.title': 'Game rules',
   'rules.scoringTitle': 'How points work',

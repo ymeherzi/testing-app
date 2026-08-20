@@ -22,15 +22,18 @@ public class AuthService {
     private final JwtService jwtService;
     private final VerificationService verification;
     private final com.tengames.auth.email.EmailAddresses emailAddresses;
+    private final PasswordScreening screening;
 
     public AuthService(UserRepository users, PasswordEncoder passwordEncoder, JwtService jwtService,
                        VerificationService verification,
-                       com.tengames.auth.email.EmailAddresses emailAddresses) {
+                       com.tengames.auth.email.EmailAddresses emailAddresses,
+                       PasswordScreening screening) {
         this.users = users;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.verification = verification;
         this.emailAddresses = emailAddresses;
+        this.screening = screening;
     }
 
     /**
@@ -49,6 +52,7 @@ public class AuthService {
         // ever open, and the player waits for an email that is not coming
         emailAddresses.require(request.email());
         PasswordPolicy.require(request.password(), request.email(), request.displayName());
+        screening.require(request.password());
         User user = new User(request.email(), passwordEncoder.encode(request.password()),
                 request.displayName(), request.country(), request.favouriteClubTeamId());
         // signing up is the one moment a player fills these in willingly, and
@@ -119,6 +123,7 @@ public class AuthService {
         // Checked before the code is spent, so a refused password can be retyped
         // with the code the player already has.
         PasswordPolicy.require(newPassword, user.getEmail(), user.getDisplayName());
+        screening.require(newPassword);
         verification.consumeCode(user, AuthCode.Purpose.RESET_PASSWORD, code);
         user.changePassword(passwordEncoder.encode(newPassword));
         // Reaching the inbox is the same proof signup asks for.

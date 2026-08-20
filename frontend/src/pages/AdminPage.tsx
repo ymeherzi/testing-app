@@ -79,8 +79,10 @@ export function AdminPage() {
       title: t('admin.roundOne'),
       season: '2026-27',
       weekIndex: 1,
+      // through Monday night: a Premier League round routinely ends there, and
+      // a fixture outside the window can never be picked however long you look
       from: '2026-08-21',
-      to: '2026-08-23',
+      to: '2026-08-24',
       countsTowardsTable: true,
     },
   ]

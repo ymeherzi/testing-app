@@ -47,6 +47,7 @@ export const fr: Messages = {
   'password.sequence': "C'est une suite de touches du clavier — trop facile à deviner.",
   'password.common': "Ce mot de passe est dans toutes les listes d'attaque — choisis-en un autre.",
   'password.personal': 'Évite ton nom et ton adresse e-mail dans ton mot de passe.',
+  'password.breached': "Ce mot de passe apparaît dans des fuites de données connues — il est dans les dictionnaires des attaquants. Choisis-en un autre.",
 
   'auth.forgotPassword': 'Mot de passe oublié ?',
   'forgot.title': 'Réinitialiser le mot de passe',
@@ -128,7 +129,7 @@ export const fr: Messages = {
   'admin.accountIsAdmin': 'Compte administrateur',
   'admin.accountDeleted': 'Compte {email} supprimé.',
   'admin.roundZero': 'Journée 0 — blanche, 12-18 août',
-  'admin.roundOne': 'Journée 1 — 21 août',
+  'admin.roundOne': 'Journée 1 — 21-24 août',
 
   'rules.title': 'Règles du jeu',
   'rules.scoringTitle': 'Comment on marque',
