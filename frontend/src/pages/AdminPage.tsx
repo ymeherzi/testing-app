@@ -296,11 +296,26 @@ function Announcement() {
              className={inputClass} aria-label={t('admin.launchTitleLabel')} />
       <textarea maxLength={160} rows={2} value={body} onChange={(e) => setBody(e.target.value)}
                 className={inputClass} aria-label={t('admin.launchBodyLabel')} />
-      <p className="text-xs text-slate-400">
-        {audience === undefined
-          ? t('common.loading')
-          : t('admin.launchAudience', { count: audience.subscribers })}
-      </p>
+      <div className="space-y-1">
+        <p className="text-xs text-slate-400">
+          {audience === undefined
+            ? t('common.loading')
+            : t('admin.launchAudience', { count: audience.subscribers })}
+        </p>
+        {/* by name: "sent to 4" begs the question of which four */}
+        {audience?.listeners.length ? (
+          <ul className="space-y-0.5 text-xs text-slate-500">
+            {audience.listeners.map((listener) => (
+              <li key={listener.id}>
+                {listener.displayName}
+                {listener.devices > 1 && ` · ${t('admin.deviceCount', { count: listener.devices })}`}
+                {listener.lastNotifiedAt &&
+                  ` · ${t('admin.lastNotified', { when: kickoffDayLabel(listener.lastNotifiedAt) })}`}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
       {message && <p className="text-sm text-slate-200">{message}</p>}
       {confirming ? (
         <div className="flex items-center gap-2">
@@ -384,6 +399,14 @@ function Accounts() {
                   predictions: account.predictions,
                   leagues: account.leagues,
                 })}
+              </p>
+              <p className="text-xs text-slate-500">
+                {account.devices === 0
+                  ? t('admin.accountNoNotifications')
+                  : t('admin.accountNotifications', {
+                      devices: account.devices,
+                      count: account.notified,
+                    })}
               </p>
               {confirming === account.id ? (
                 <div className="mt-2 flex items-center gap-2">

@@ -3,6 +3,7 @@ import { api } from './client'
 import type { ScoringScale } from '../lib/scoring'
 import type {
   AccountView,
+  Listener,
   CompetitionView,
   GameweekSummary,
   GameweekView,
@@ -249,7 +250,8 @@ export function useAdminSuggestions(from: string, to: string, enabled: boolean) 
 export function useAnnouncementAudience(enabled: boolean) {
   return useQuery({
     queryKey: ['admin', 'audience'],
-    queryFn: () => api<{ subscribers: number }>('/api/admin/notifications/audience'),
+    queryFn: () =>
+      api<{ subscribers: number; listeners: Listener[] }>('/api/admin/notifications/audience'),
     enabled,
   })
 }

@@ -131,6 +131,9 @@ class NotificationIT {
     @Autowired
     private Clock clock;
 
+    @Autowired
+    private org.springframework.jdbc.core.simple.JdbcClient jdbc;
+
     private User alice;
     private User bob;
 
@@ -280,7 +283,7 @@ class NotificationIT {
     void theAnnouncementSaysHowManyItCouldHaveReached() {
         // "sent to 0" means two very different things — nobody subscribed, or
         // everybody already told — so the screen is given both numbers
-        var controller = new AdminNotificationController(notificationService, push);
+        var controller = new AdminNotificationController(notificationService, push, jdbc);
 
         var first = controller.announceLaunch(
                 new AdminNotificationController.AnnounceRequest("Ça commence", "Journée 1 ouverte"));
@@ -292,6 +295,24 @@ class NotificationIT {
         assertThat(again.get("sent")).isZero();
         // the audience does not shrink just because everyone has been told
         assertThat(again.get("subscribers")).isEqualTo(first.get("subscribers"));
+    }
+
+    @Test
+    void theAudienceIsNamed() {
+        // a count answers "how many", never "who" — and "who" is the question
+        // that follows every send
+        var controller = new AdminNotificationController(notificationService, push, jdbc);
+        User silent = users.save(new User("silent-%s@example.com".formatted(UUID.randomUUID()),
+                passwordEncoder.encode("correct-horse"), "silent", "TN", null));
+
+        @SuppressWarnings("unchecked")
+        var listeners = (List<AdminNotificationController.Listener>) controller.audience().get("listeners");
+
+        assertThat(listeners).filteredOn(l -> l.id().equals(alice.getPublicId()))
+                .singleElement()
+                .satisfies(l -> assertThat(l.devices()).isEqualTo(1));
+        // nobody hears without having said yes
+        assertThat(listeners).noneMatch(l -> l.id().equals(silent.getPublicId()));
     }
 
     @Test

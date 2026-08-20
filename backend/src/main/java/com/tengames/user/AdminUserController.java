@@ -42,9 +42,18 @@ public class AdminUserController {
         this.jdbc = jdbc;
     }
 
-    /** Enough to recognise an account, and to see what removing it costs. */
+    /**
+     * Enough to recognise an account, to see what removing it costs, and to
+     * answer the question the announcement raises: who actually hears us?
+     *
+     * @param devices       how many devices this player has registered for
+     *                      notifications; zero means they hear nothing
+     * @param notified      how many notifications we have sent them, ever
+     * @param lastNotifiedAt when the last one went out, null if never
+     */
     public record AccountView(UUID id, String email, String displayName, boolean emailVerified,
-                              boolean admin, long predictions, long leagues, long ownedLeagues) {
+                              boolean admin, long predictions, long leagues, long ownedLeagues,
+                              long devices, long notified, java.time.Instant lastNotifiedAt) {
     }
 
     @GetMapping
@@ -55,7 +64,10 @@ public class AdminUserController {
                         select u.public_id, u.email, u.display_name, u.email_verified, u.is_admin,
                                (select count(*) from predictions p where p.user_id = u.id) as predictions,
                                (select count(*) from league_members m where m.user_id = u.id) as leagues,
-                               (select count(*) from leagues l where l.admin_user_id = u.id) as owned
+                               (select count(*) from leagues l where l.admin_user_id = u.id) as owned,
+                               (select count(*) from push_subscriptions s where s.user_id = u.id) as devices,
+                               (select count(*) from notifications n where n.user_id = u.id) as notified,
+                               (select max(n.sent_at) from notifications n where n.user_id = u.id) as last_notified
                         from users u
                         -- the cast is not decoration: Postgres cannot infer the
                         -- type of a bare parameter compared against null
@@ -69,7 +81,11 @@ public class AdminUserController {
                         UUID.fromString(rs.getString("public_id")), rs.getString("email"),
                         rs.getString("display_name"), rs.getBoolean("email_verified"),
                         rs.getBoolean("is_admin"), rs.getLong("predictions"),
-                        rs.getLong("leagues"), rs.getLong("owned")))
+                        rs.getLong("leagues"), rs.getLong("owned"),
+                        rs.getLong("devices"), rs.getLong("notified"),
+                        rs.getTimestamp("last_notified") == null
+                                ? null
+                                : rs.getTimestamp("last_notified").toInstant()))
                 .list();
     }
 

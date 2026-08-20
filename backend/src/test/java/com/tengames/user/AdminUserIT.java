@@ -46,6 +46,9 @@ class AdminUserIT {
     @Autowired
     private JwtService jwtService;
 
+    @Autowired
+    private com.tengames.push.PushService push;
+
     private String adminToken;
     private User admin;
 
@@ -86,6 +89,21 @@ class AdminUserIT {
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString(email)));
+    }
+
+    @Test
+    void anAccountSaysWhetherItHearsAnything() throws Exception {
+        // "who got the announcement?" is unanswerable from a count alone
+        String email = "listener-%s@example.com".formatted(UUID.randomUUID());
+        User player = users.save(account(email, false));
+        push.subscribe(player.getId(), "https://push.example.net/" + UUID.randomUUID(), "key", "auth");
+
+        String body = mockMvc.perform(get("/api/admin/users").param("q", email.substring(0, 12))
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        assertThat(body).contains("\"devices\":1");
     }
 
     @Test

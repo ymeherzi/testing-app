@@ -190,4 +190,16 @@ export interface AccountView {
   predictions: number
   leagues: number
   ownedLeagues: number
+  /** Registered devices: zero means this player hears nothing. */
+  devices: number
+  notified: number
+  lastNotifiedAt: string | null
+}
+
+/** One player who would hear an announcement sent right now. */
+export interface Listener {
+  id: string
+  displayName: string
+  devices: number
+  lastNotifiedAt: string | null
 }
