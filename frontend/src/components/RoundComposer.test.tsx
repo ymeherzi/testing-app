@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { I18nProvider } from '../i18n'
 import { RoundComposer } from './RoundComposer'
@@ -117,6 +117,7 @@ function show() {
 
 afterEach(() => {
   cleanup()
+  localStorage.clear()
   vi.unstubAllGlobals()
 })
 
@@ -134,6 +135,25 @@ describe('adding a fixture', () => {
     expect(await screen.findByText('West Brom')).toBeDefined()
     // and the Premier League crowd is out of the way
     expect(screen.queryByText('Home 0')).toBeNull()
+  })
+
+  it('draws from the dates the editor sets, and remembers them', async () => {
+    stubApi()
+    show()
+
+    // Monday night, which the hardcoded window used to cut off
+    fireEvent.change(screen.getByLabelText('to'), { target: { value: '2026-08-24' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Add a fixture' }))
+
+    await waitFor(() =>
+      expect(
+        (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.some(
+          (call) => String(call[0]).includes('from=2026-08-21&to=2026-08-24'),
+        ),
+      ).toBe(true),
+    )
+    // and the next visit opens on the same dates
+    expect(localStorage.getItem('tengames.roundRange.2026-27-1')).toContain('2026-08-24')
   })
 
   it('names the competition rather than showing its code', async () => {

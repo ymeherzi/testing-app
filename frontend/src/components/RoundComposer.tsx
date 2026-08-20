@@ -4,15 +4,35 @@ import type { GameweekView, MatchView, SuggestionView, Team } from '../api/types
 import { TeamBadge } from './TeamBadge'
 import { kickoffDayLabel, kickoffTimeLabel } from '../lib/format'
 import { useT } from '../i18n'
+import { readStored, writeStored } from '../lib/storage'
 
 export interface RoundSpec {
   title: string
   season: string
   weekIndex: number
-  /** ISO dates, inclusive, for both the window and the suggestion pool */
+  /**
+   * ISO dates, inclusive, for both the window and the suggestion pool. Only a
+   * starting point: the editor sets the real dates on the screen, and a round
+   * that runs to Monday night or opens on a Wednesday should not need a
+   * developer.
+   */
   from: string
   to: string
   countsTowardsTable: boolean
+}
+
+/** The dates the editor last chose for this round, kept between visits. */
+function storedRange(spec: RoundSpec): { from: string; to: string } {
+  const raw = readStored(`roundRange.${spec.season}-${spec.weekIndex}`)
+  if (!raw) {
+    return { from: spec.from, to: spec.to }
+  }
+  try {
+    const saved = JSON.parse(raw) as { from?: string; to?: string }
+    return { from: saved.from ?? spec.from, to: saved.to ?? spec.to }
+  } catch {
+    return { from: spec.from, to: spec.to }
+  }
 }
 
 interface Fixture {
@@ -92,7 +112,15 @@ export function RoundComposer({ spec, existing }: { spec: RoundSpec; existing?: 
   const [removing, setRemoving] = useState<number | null>(null)
   const [competition, setCompetition] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const suggestions = useAdminSuggestions(spec.from, spec.to, swapping !== null || adding)
+  const [range, setRange] = useState(() => storedRange(spec))
+  const suggestions = useAdminSuggestions(range.from, range.to, swapping !== null || adding)
+
+  /** Both the pool to choose from and the window a fresh card is composed over. */
+  const setDate = (edge: 'from' | 'to', value: string) => {
+    const next = { ...range, [edge]: value }
+    setRange(next)
+    writeStored(`roundRange.${spec.season}-${spec.weekIndex}`, JSON.stringify(next))
+  }
   const { data: catalogue } = useCompetitions()
 
   const run = async (action: () => Promise<unknown>) => {
@@ -109,8 +137,8 @@ export function RoundComposer({ spec, existing }: { spec: RoundSpec; existing?: 
       composeGameweek.mutateAsync({
         season: spec.season,
         weekIndex: spec.weekIndex,
-        windowStart: `${spec.from}T00:00:00Z`,
-        windowEnd: `${spec.to}T23:59:59Z`,
+        windowStart: `${range.from}T00:00:00Z`,
+        windowEnd: `${range.to}T23:59:59Z`,
         countsTowardsTable: spec.countsTowardsTable,
         size: 10,
       }),
@@ -235,6 +263,30 @@ export function RoundComposer({ spec, existing }: { spec: RoundSpec; existing?: 
         )}
       </header>
 
+      {/* The dates the round draws from. Editable here rather than in the
+          source: a Monday night fixture, a Wednesday super cup, a round that
+          runs long — none of that should need a deployment. */}
+      <div className="flex flex-wrap items-end gap-2">
+        <label className="flex-1 space-y-1">
+          <span className="text-xs text-slate-500">{t('admin.rangeFrom')}</span>
+          <input
+            type="date"
+            value={range.from}
+            onChange={(e) => setDate('from', e.target.value)}
+            className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+          />
+        </label>
+        <label className="flex-1 space-y-1">
+          <span className="text-xs text-slate-500">{t('admin.rangeTo')}</span>
+          <input
+            type="date"
+            value={range.to}
+            onChange={(e) => setDate('to', e.target.value)}
+            className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+          />
+        </label>
+      </div>
+
       {error && <p className="text-sm text-red-400">{error}</p>}
 
       {existing && (
@@ -297,6 +349,9 @@ export function RoundComposer({ spec, existing }: { spec: RoundSpec; existing?: 
         <div className="space-y-2 rounded-xl border border-emerald-900/60 bg-slate-900/60 p-3">
           <p className="text-xs uppercase tracking-wide text-slate-500">
             {adding ? t('admin.pickAddition') : t('admin.pickReplacement')}
+          </p>
+          <p className="text-xs text-slate-400">
+            {t('admin.candidateCount', { count: candidates.length })}
           </p>
           {offered.length > 1 && (
             <select
