@@ -245,6 +245,15 @@ export function useAdminSuggestions(from: string, to: string, enabled: boolean) 
   })
 }
 
+/** How many players would hear an announcement sent right now. */
+export function useAnnouncementAudience(enabled: boolean) {
+  return useQuery({
+    queryKey: ['admin', 'audience'],
+    queryFn: () => api<{ subscribers: number }>('/api/admin/notifications/audience'),
+    enabled,
+  })
+}
+
 /** Accounts, searched by address or name. Admin screen only. */
 export function useAdminAccounts(query: string, enabled: boolean) {
   return useQuery({
@@ -318,6 +327,18 @@ export function useAdminActions() {
     mutationFn: (id: string) => api<void>(`/api/admin/users/${id}`, { method: 'DELETE' }),
     onSettled: invalidate,
   })
+  /**
+   * The season announcement. Idempotent on the server — pressing it twice
+   * reaches nobody twice — and it answers with how many it woke.
+   */
+  const announceLaunch = useMutation({
+    mutationFn: (input: { title: string; body: string }) =>
+      api<{ sent: number; subscribers: number }>('/api/admin/notifications/launch', {
+        method: 'POST',
+        body: JSON.stringify(input),
+      }),
+    onSettled: invalidate,
+  })
   const publish = useMutation({
     mutationFn: (gameweekId: number) =>
       api<GameweekView>(`/api/admin/gameweeks/${gameweekId}/publish`, { method: 'POST' }),
@@ -336,5 +357,5 @@ export function useAdminActions() {
     onSettled: invalidate,
   })
   return { createGameweek, composeGameweek, setFixtures, addFixtures, removeFixture, replaceFixture,
-           publish, sync, simulateResult, deleteAccount }
+           publish, sync, simulateResult, deleteAccount, announceLaunch }
 }

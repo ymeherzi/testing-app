@@ -277,6 +277,24 @@ class NotificationIT {
     }
 
     @Test
+    void theAnnouncementSaysHowManyItCouldHaveReached() {
+        // "sent to 0" means two very different things — nobody subscribed, or
+        // everybody already told — so the screen is given both numbers
+        var controller = new AdminNotificationController(notificationService, push);
+
+        var first = controller.announceLaunch(
+                new AdminNotificationController.AnnounceRequest("Ça commence", "Journée 1 ouverte"));
+        var again = controller.announceLaunch(
+                new AdminNotificationController.AnnounceRequest("Ça commence", "encore"));
+
+        assertThat(first.get("subscribers")).isPositive();
+        assertThat(first.get("sent")).isPositive();
+        assertThat(again.get("sent")).isZero();
+        // the audience does not shrink just because everyone has been told
+        assertThat(again.get("subscribers")).isEqualTo(first.get("subscribers"));
+    }
+
+    @Test
     void aNotificationThatCouldNotBeDeliveredIsRetried() {
         long round = publishedRound("9960-07", Duration.ofDays(2), 2);
         pushes.failFor = alice.getId();

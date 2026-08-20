@@ -1,5 +1,11 @@
 import { useState, type FormEvent } from 'react'
-import { useAdminAccounts, useAdminActions, useAdminGameweeks, useAdminMatchPool } from '../api/queries'
+import {
+  useAdminAccounts,
+  useAdminActions,
+  useAdminGameweeks,
+  useAdminMatchPool,
+  useAnnouncementAudience,
+} from '../api/queries'
 import { RoundComposer, type RoundSpec } from '../components/RoundComposer'
 import { TeamBadge } from '../components/TeamBadge'
 import type { AccountView, MatchView } from '../api/types'
@@ -149,6 +155,8 @@ export function AdminPage() {
         ))}
       </section>
 
+      <Announcement />
+
       <Accounts />
 
       <section className="space-y-3">
@@ -242,6 +250,80 @@ export function AdminPage() {
         </div>
       </details>
     </div>
+  )
+}
+
+/**
+ * The one notification with no schedule behind it: only the editor knows when
+ * the season really starts.
+ *
+ * <p>Behind a confirmation, because it wakes every phone that opted in. The
+ * server refuses to tell anyone twice, and answers with how many it woke — and
+ * with the audience, since "sent to 0" otherwise means either nobody has
+ * notifications on or everybody has already heard.
+ */
+function Announcement() {
+  const t = useT()
+  const { announceLaunch } = useAdminActions()
+  const { data: audience } = useAnnouncementAudience(true)
+  const [title, setTitle] = useState(t('admin.launchTitleDefault'))
+  const [body, setBody] = useState(t('admin.launchBodyDefault'))
+  const [confirming, setConfirming] = useState(false)
+  const [message, setMessage] = useState<string | null>(null)
+
+  const send = async () => {
+    setConfirming(false)
+    setMessage(null)
+    try {
+      const result = await announceLaunch.mutateAsync({ title, body })
+      setMessage(
+        result.subscribers === 0
+          ? t('admin.launchNoAudience')
+          : t('admin.launchSent', { count: result.sent }),
+      )
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : t('admin.actionFailed'))
+    }
+  }
+
+  const inputClass =
+    'w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-emerald-500'
+
+  return (
+    <section className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950 p-4">
+      <h2 className="font-bold text-slate-100">{t('admin.launchTitle')}</h2>
+      <input type="text" maxLength={60} value={title} onChange={(e) => setTitle(e.target.value)}
+             className={inputClass} aria-label={t('admin.launchTitleLabel')} />
+      <textarea maxLength={160} rows={2} value={body} onChange={(e) => setBody(e.target.value)}
+                className={inputClass} aria-label={t('admin.launchBodyLabel')} />
+      <p className="text-xs text-slate-400">
+        {audience === undefined
+          ? t('common.loading')
+          : t('admin.launchAudience', { count: audience.subscribers })}
+      </p>
+      {message && <p className="text-sm text-slate-200">{message}</p>}
+      {confirming ? (
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={send}
+                  className="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-emerald-950">
+            {t('admin.launchConfirm')}
+          </button>
+          <button type="button" onClick={() => setConfirming(false)}
+                  className="text-xs font-medium text-slate-400">
+            {t('admin.cancel')}
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setConfirming(true)}
+          disabled={announceLaunch.isPending || !title.trim() || !body.trim()}
+          className="rounded-xl border border-emerald-600 px-4 py-2 text-sm font-semibold text-emerald-300 disabled:opacity-50"
+        >
+          {t('admin.launchSend')}
+        </button>
+      )}
+    </section>
   )
 }
 
