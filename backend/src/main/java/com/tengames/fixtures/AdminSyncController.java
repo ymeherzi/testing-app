@@ -41,12 +41,14 @@ public class AdminSyncController {
     public SyncSummary syncFixtures() {
         cupImporter.ifAvailable(importer -> {
             java.time.LocalDate today = java.time.LocalDate.ofInstant(clock.instant(), java.time.ZoneOffset.UTC);
-            importer.importCups(today.minusDays(7), today.plusDays(30));
+            importer.importCups(today.minusDays(7), today.plusDays(75));
         });
         // fixtures only, so the editor is not left waiting on squad lists the
         // nightly job already keeps up to date
         java.time.LocalDate today = java.time.LocalDate.ofInstant(clock.instant(), java.time.ZoneOffset.UTC);
-        return syncService.syncAll(today.minusDays(7), today.plusDays(30), false);
+        // as far ahead as the nightly job: an editor preparing three or four
+        // rounds needs the whole stretch, not the next month
+        return syncService.syncAll(today.minusDays(7), today.plusDays(75), false);
     }
 
     @PostMapping("/api/admin/sync/livescores")

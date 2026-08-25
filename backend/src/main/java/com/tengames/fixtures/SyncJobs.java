@@ -44,7 +44,7 @@ public class SyncJobs {
     public void dailyFixtureSync() {
         cupImporter.ifAvailable(importer -> {
             LocalDate today = LocalDate.ofInstant(clock.instant(), ZoneOffset.UTC);
-            importer.importCups(today.minusDays(7), today.plusDays(30));
+            importer.importCups(today.minusDays(7), today.plusDays(75));
         });
         syncService.syncAll();
     }
