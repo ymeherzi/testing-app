@@ -147,8 +147,11 @@ export const en = {
   'admin.cancel': 'Cancel',
   'admin.accountIsAdmin': 'Administrator account',
   'admin.accountDeleted': 'Account {email} deleted.',
-  'admin.roundZero': 'Round 0 — warm-up, 12-18 August',
-  'admin.roundOne': 'Round 1 — 21-24 August',
+  'admin.roundNumber': 'Round {index}',
+  'admin.roundMidweek': 'Round {index} — midweek',
+  'admin.pastRounds': 'Past rounds ({count})',
+  'admin.oneMoreRound': 'One more round',
+  'admin.midweekRound': 'Midweek round',
 
   'rules.title': 'Game rules',
   'rules.scoringTitle': 'How points work',

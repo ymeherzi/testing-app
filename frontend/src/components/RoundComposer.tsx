@@ -10,6 +10,8 @@ export interface RoundSpec {
   title: string
   season: string
   weekIndex: number
+  /** WEEKEND unless the round is a European midweek. */
+  type?: 'WEEKEND' | 'MIDWEEK'
   /**
    * ISO dates, inclusive, for both the window and the suggestion pool. Only a
    * starting point: the editor sets the real dates on the screen, and a round
@@ -137,6 +139,7 @@ export function RoundComposer({ spec, existing }: { spec: RoundSpec; existing?: 
       composeGameweek.mutateAsync({
         season: spec.season,
         weekIndex: spec.weekIndex,
+        type: spec.type,
         windowStart: `${range.from}T00:00:00Z`,
         windowEnd: `${range.to}T23:59:59Z`,
         countsTowardsTable: spec.countsTowardsTable,

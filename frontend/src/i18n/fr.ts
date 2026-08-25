@@ -145,8 +145,11 @@ export const fr: Messages = {
   'admin.cancel': 'Annuler',
   'admin.accountIsAdmin': 'Compte administrateur',
   'admin.accountDeleted': 'Compte {email} supprimé.',
-  'admin.roundZero': 'Journée 0 — blanche, 12-18 août',
-  'admin.roundOne': 'Journée 1 — 21-24 août',
+  'admin.roundNumber': 'Journée {index}',
+  'admin.roundMidweek': 'Journée {index} — en semaine',
+  'admin.pastRounds': 'Journées passées ({count})',
+  'admin.oneMoreRound': 'Une journée de plus',
+  'admin.midweekRound': 'Journée de semaine',
 
   'rules.title': 'Règles du jeu',
   'rules.scoringTitle': 'Comment on marque',

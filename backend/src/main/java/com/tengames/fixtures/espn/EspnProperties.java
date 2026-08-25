@@ -32,13 +32,19 @@ public record EspnProperties(Boolean enabled, String baseUrl, List<String> leagu
         }
         if (leagues == null || leagues.isEmpty()) {
             leagues = List.of("eng.1", "eng.2", "esp.1", "ita.1", "ger.1", "fra.1",
-                    "por.1", "ned.1", "bel.1", "sco.1", "uefa.champions", "uefa.super_cup",
+                    "por.1", "ned.1", "bel.1", "sco.1",
+                    "uefa.champions", "uefa.europa", "uefa.europa.conf", "uefa.super_cup",
                     "eng.charity", "fra.super_cup", "eng.league_cup", "eng.fa",
                     "esp.copa_del_rey", "ita.coppa_italia", "ger.dfb_pokal", "fra.coupe_de_france");
         }
         if (cups == null || cups.isEmpty()) {
             cups = List.of(
                     "uefa.super_cup|USCUP|UEFA Super Cup",
+                    // the two European nights football-data's free tier does
+                    // not carry either; the Champions League comes from there
+                    // under the code CL
+                    "uefa.europa|UEL|UEFA Europa League",
+                    "uefa.europa.conf|UECL|UEFA Conference League",
                     "eng.charity|CSHIELD|FA Community Shield",
                     "fra.super_cup|TDC|Trophée des Champions",
                     // the domestic cups of the big five, none of which the

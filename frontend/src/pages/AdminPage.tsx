@@ -10,6 +10,7 @@ import { RoundComposer, type RoundSpec } from '../components/RoundComposer'
 import { TeamBadge } from '../components/TeamBadge'
 import type { AccountView, MatchView } from '../api/types'
 import { kickoffTimeLabel, kickoffDayLabel } from '../lib/format'
+import { planRounds, type RoundKind } from '../lib/rounds'
 import { useT } from '../i18n'
 
 function matchLabel(match: MatchView): string {
@@ -26,6 +27,7 @@ export function AdminPage() {
   const [weekIndex, setWeekIndex] = useState(1)
   const [selection, setSelection] = useState<Set<number>>(new Set())
   const [targetGameweek, setTargetGameweek] = useState('')
+  const [upcoming, setUpcoming] = useState<RoundKind[]>(['WEEKEND', 'WEEKEND', 'WEEKEND'])
   const [message, setMessage] = useState<string | null>(null)
 
   const run = async (action: () => Promise<unknown>, success: string) => {
@@ -65,35 +67,29 @@ export function AdminPage() {
     })
   }
 
-  // The two rounds that have to exist before the season opens. Kept here
-  // rather than typed in every week: composing them is the whole job, and a
-  // wrong date silently produces an empty card.
-  const rounds: RoundSpec[] = [
-    {
-      title: t('admin.roundZero'),
-      season: '2026-27',
-      weekIndex: 0,
-      // widened from the weekend alone: only La Liga played on 15-16, which
-      // gave a card of five. Friday to Tuesday catches the cup finals and the
-      // opening rounds either side — and now the Wednesday before it, for the
-      // UEFA Super Cup, which is the warm-up round's whole point.
-      from: '2026-08-12',
-      to: '2026-08-18',
-      countsTowardsTable: false,
-    },
-    {
-      title: t('admin.roundOne'),
-      season: '2026-27',
-      weekIndex: 1,
-      // through Monday night: a Premier League round routinely ends there, and
-      // a fixture outside the window can never be picked however long you look
-      from: '2026-08-21',
-      to: '2026-08-24',
-      countsTowardsTable: true,
-    },
-  ]
+  // The season, rolling: every round already on record, then the next ones to
+  // prepare. Written by hand until J1, which is why nothing existed past it.
+  const today = new Date().toISOString().slice(0, 10)
+  // nothing is proposed before the season is known: planning from an empty
+  // list numbers the next round 0, and one click would compose it
+  const plan = gameweeks ? planRounds(gameweeks, upcoming, today) : []
+  const specFor = (round: (typeof plan)[number]): RoundSpec => ({
+    title: round.type === 'MIDWEEK'
+      ? t('admin.roundMidweek', { index: round.weekIndex })
+      : t('admin.roundNumber', { index: round.weekIndex }),
+    season: round.season,
+    weekIndex: round.weekIndex,
+    type: round.type,
+    from: round.from,
+    to: round.to,
+    countsTowardsTable: round.countsTowardsTable,
+  })
   const roundFor = (spec: RoundSpec) =>
     gameweeks?.find((gw) => gw.season === spec.season && gw.weekIndex === spec.weekIndex)
+  // A round whose window has closed is done with; keeping it on screen would
+  // push the one being prepared below a season's worth of history.
+  const done = plan.filter((round) => round.to < today)
+  const live = plan.filter((round) => round.to >= today)
 
   const inputClass =
     'rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-emerald-500'
@@ -114,9 +110,39 @@ export function AdminPage() {
 
       {message && <p className="rounded-lg bg-slate-800/80 px-3 py-2 text-sm text-slate-200">{message}</p>}
 
-      {rounds.map((spec) => (
+      {done.length > 0 && (
+        <details className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
+          <summary className="cursor-pointer text-sm font-semibold text-slate-300">
+            {t('admin.pastRounds', { count: done.length })}
+          </summary>
+          <div className="mt-4 space-y-6">
+            {done.map(specFor).map((spec) => (
+              <RoundComposer key={`${spec.season}-${spec.weekIndex}`} spec={spec} existing={roundFor(spec)} />
+            ))}
+          </div>
+        </details>
+      )}
+
+      {live.map(specFor).map((spec) => (
         <RoundComposer key={`${spec.season}-${spec.weekIndex}`} spec={spec} existing={roundFor(spec)} />
       ))}
+
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setUpcoming((current) => [...current, 'WEEKEND'])}
+          className="rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm font-medium text-slate-100 active:bg-slate-700"
+        >
+          {t('admin.oneMoreRound')}
+        </button>
+        <button
+          type="button"
+          onClick={() => setUpcoming((current) => [...current, 'MIDWEEK'])}
+          className="rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm font-medium text-slate-100 active:bg-slate-700"
+        >
+          {t('admin.midweekRound')}
+        </button>
+      </div>
 
       <details className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
         <summary className="cursor-pointer text-sm font-semibold text-slate-300">

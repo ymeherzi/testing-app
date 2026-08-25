@@ -15,4 +15,12 @@ public interface GameweekRepository extends JpaRepository<Gameweek, Long> {
 
     /** The gameweek that is current or next relative to the given instant. */
     Optional<Gameweek> findFirstByWindowEndAfterOrderByWindowStartAsc(Instant now);
+
+    /** The playable round whose window is open right now, latest first if they overlap. */
+    Optional<Gameweek> findFirstByStatusInAndWindowStartBeforeAndWindowEndAfterOrderByWindowStartDesc(
+            Collection<Gameweek.Status> statuses, Instant before, Instant after);
+
+    /** The next playable round to open. */
+    Optional<Gameweek> findFirstByStatusInAndWindowStartAfterOrderByWindowStartAsc(
+            Collection<Gameweek.Status> statuses, Instant now);
 }

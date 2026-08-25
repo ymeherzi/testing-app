@@ -52,10 +52,18 @@ public class FixtureSyncService {
         }
     }
 
-    /** Sync all provider-backed competitions over a default window (past week to +30 days). */
+    /**
+     * Sync all provider-backed competitions over a default window (past week to
+     * +75 days).
+     *
+     * <p>Far enough ahead to compose the next few rounds. At +30 the pool ran
+     * out a month out, which is exactly where preparing three or four rounds
+     * ahead lands. The window costs no extra calls — only a wider date range on
+     * each of them.
+     */
     public SyncSummary syncAll() {
         LocalDate today = LocalDate.ofInstant(clock.instant(), ZoneOffset.UTC);
-        return syncAll(today.minusDays(7), today.plusDays(30));
+        return syncAll(today.minusDays(7), today.plusDays(75));
     }
 
     public SyncSummary syncAll(LocalDate from, LocalDate to) {

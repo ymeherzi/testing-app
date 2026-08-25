@@ -284,6 +284,7 @@ export function useAdminActions() {
     mutationFn: (input: {
       season: string
       weekIndex: number
+      type?: 'WEEKEND' | 'MIDWEEK'
       windowStart: string
       windowEnd: string
       countsTowardsTable: boolean

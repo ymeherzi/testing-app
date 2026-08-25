@@ -47,10 +47,22 @@ public class GameweekService {
         this.clock = clock;
     }
 
+    /**
+     * The round a player lands on: the one being played, else the next one to
+     * open, else the last one played.
+     *
+     * <p>Not simply "the latest published round". Rounds are prepared several
+     * weeks ahead, and publishing two at once used to send everybody to the
+     * furthest one — skipping the round they were in the middle of.
+     */
     @Transactional(readOnly = true)
     public GameweekView currentForUser(long userId) {
+        Instant now = clock.instant();
+        EnumSet<Gameweek.Status> playable = EnumSet.of(Gameweek.Status.PUBLISHED, Gameweek.Status.SCORED);
         Gameweek gameweek = gameweeks
-                .findFirstByStatusInOrderByWindowStartDesc(EnumSet.of(Gameweek.Status.PUBLISHED, Gameweek.Status.SCORED))
+                .findFirstByStatusInAndWindowStartBeforeAndWindowEndAfterOrderByWindowStartDesc(playable, now, now)
+                .or(() -> gameweeks.findFirstByStatusInAndWindowStartAfterOrderByWindowStartAsc(playable, now))
+                .or(() -> gameweeks.findFirstByStatusInOrderByWindowStartDesc(playable))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No published gameweek yet"));
         return viewForUser(gameweek, userId);
     }
