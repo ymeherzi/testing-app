@@ -7,6 +7,7 @@ import com.tengames.league.LeagueDtos.LeagueDetail;
 import com.tengames.league.LeagueDtos.LeagueSummary;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -43,19 +44,22 @@ public class LeagueController {
         return leagueService.myLeagues(CurrentUser.id(authentication));
     }
 
-    @GetMapping("/{id:\\d+}")
-    public LeagueDetail detail(Authentication authentication, @PathVariable long id) {
+    // The pattern keeps /mine and /join out of this route, exactly as the
+    // digits-only pattern it replaces did, and answers a malformed id with a
+    // 404 rather than a 400.
+    @GetMapping("/{id:[0-9a-fA-F-]{36}}")
+    public LeagueDetail detail(Authentication authentication, @PathVariable UUID id) {
         return leagueService.detail(CurrentUser.id(authentication), id);
     }
 
-    @PostMapping("/{id:\\d+}/regenerate-code")
-    public LeagueDetail regenerateCode(Authentication authentication, @PathVariable long id) {
+    @PostMapping("/{id:[0-9a-fA-F-]{36}}/regenerate-code")
+    public LeagueDetail regenerateCode(Authentication authentication, @PathVariable UUID id) {
         return leagueService.regenerateCode(CurrentUser.id(authentication), id);
     }
 
-    @DeleteMapping("/{id:\\d+}/members/me")
+    @DeleteMapping("/{id:[0-9a-fA-F-]{36}}/members/me")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void leave(Authentication authentication, @PathVariable long id) {
+    public void leave(Authentication authentication, @PathVariable UUID id) {
         leagueService.leave(CurrentUser.id(authentication), id);
     }
 }

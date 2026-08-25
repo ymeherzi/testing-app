@@ -44,7 +44,7 @@ public class LeagueService {
         League league = leagues.save(new League(name.trim(), uniqueCode(), userId));
         Instant now = clock.instant();
         members.save(new LeagueMember(league, userId, resolveJoinGameweekId(now), now));
-        return detail(userId, league.getId());
+        return detailOf(userId, league);
     }
 
     @Transactional
@@ -59,11 +59,12 @@ public class LeagueService {
         }
         Instant now = clock.instant();
         members.save(new LeagueMember(league, userId, resolveJoinGameweekId(now), now));
-        return detail(userId, league.getId());
+        return detailOf(userId, league);
     }
 
     @Transactional
-    public void leave(long userId, long leagueId) {
+    public void leave(long userId, java.util.UUID publicId) {
+        long leagueId = require(publicId).getId();
         LeagueMember membership = members.findByLeagueIdAndUserId(leagueId, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "League not found"));
         League league = membership.getLeague();
@@ -72,7 +73,11 @@ public class LeagueService {
                 throw new ResponseStatusException(HttpStatus.CONFLICT,
                         "The league admin can only leave once everyone else has left; leaving then deletes the league");
             }
-            leagues.delete(league); // cascade removes the membership
+            // the membership goes through JPA rather than the database cascade:
+            // it is loaded in this session, and leaving it behind would leave a
+            // managed row pointing at a league that no longer exists
+            members.delete(membership);
+            leagues.delete(league);
             return;
         }
         members.delete(membership);
@@ -86,7 +91,7 @@ public class LeagueService {
             League league = membership.getLeague();
             List<MemberEntry> table = tableService.leagueMembersTable(league.getId());
             MemberEntry me = table.stream().filter(e -> e.userId().equals(publicId)).findFirst().orElse(null);
-            summaries.add(new LeagueSummary(league.getId(), league.getName(), league.getInviteCode(),
+            summaries.add(new LeagueSummary(league.getPublicId(), league.getName(), league.getInviteCode(),
                     league.getAdminUserId().equals(userId), table.size(),
                     me == null ? null : me.rank(), me == null ? 0 : me.points()));
         }
@@ -94,30 +99,43 @@ public class LeagueService {
     }
 
     @Transactional(readOnly = true)
-    public LeagueDetail detail(long userId, long leagueId) {
-        // Non-members get 404, not 403: league ids must not be enumerable.
+    public LeagueDetail detail(long userId, java.util.UUID publicId) {
+        return detailOf(userId, require(publicId));
+    }
+
+    private LeagueDetail detailOf(long userId, League league) {
+        long leagueId = league.getId();
+        // Non-members get 404, not 403: a league must not be enumerable.
         if (!members.existsByLeagueIdAndUserId(leagueId, userId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "League not found");
         }
-        League league = leagues.findById(leagueId).orElseThrow();
         List<MemberEntry> table = tableService.leagueMembersTable(leagueId);
-        java.util.UUID publicId = publicIdOf(userId);
-        MemberEntry me = table.stream().filter(e -> e.userId().equals(publicId)).findFirst().orElse(null);
-        return new LeagueDetail(league.getId(), league.getName(), league.getInviteCode(),
+        java.util.UUID viewer = publicIdOf(userId);
+        MemberEntry me = table.stream().filter(e -> e.userId().equals(viewer)).findFirst().orElse(null);
+        return new LeagueDetail(league.getPublicId(), league.getName(), league.getInviteCode(),
                 league.getAdminUserId().equals(userId), league.getMaxMembers(), table, me);
     }
 
+    /**
+     * The league behind a public id — or the same 404 a non-member gets, so
+     * that an unknown id and someone else's league are indistinguishable.
+     */
+    private League require(java.util.UUID publicId) {
+        return leagues.findByPublicId(publicId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "League not found"));
+    }
+
     @Transactional
-    public LeagueDetail regenerateCode(long userId, long leagueId) {
-        if (!members.existsByLeagueIdAndUserId(leagueId, userId)) {
+    public LeagueDetail regenerateCode(long userId, java.util.UUID publicId) {
+        League league = require(publicId);
+        if (!members.existsByLeagueIdAndUserId(league.getId(), userId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "League not found");
         }
-        League league = leagues.findById(leagueId).orElseThrow();
         if (!league.getAdminUserId().equals(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the league admin can change the invite code");
         }
         league.setInviteCode(uniqueCode());
-        return detail(userId, leagueId);
+        return detailOf(userId, league);
     }
 
     private java.util.UUID publicIdOf(long userId) {

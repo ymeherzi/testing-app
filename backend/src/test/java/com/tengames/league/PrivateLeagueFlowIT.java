@@ -46,6 +46,9 @@ class PrivateLeagueFlowIT {
     @Autowired
     private JwtService jwtService;
 
+    @Autowired
+    private LeagueRepository leagues;
+
     private String founderToken;
     private String joinerToken;
     private String outsiderToken;
@@ -76,9 +79,32 @@ class PrivateLeagueFlowIT {
     }
 
     @Test
+    void theLeagueInTheUrlCannotBeGuessed() throws Exception {
+        JsonNode league = createLeague("Unguessable League");
+
+        // the id in the payload is the public one, never the row's primary key
+        java.util.UUID publicId = java.util.UUID.fromString(league.get("id").asText());
+        assertThat(leagues.findByPublicId(publicId)).isPresent()
+                .get()
+                .satisfies(row -> assertThat(row.getId()).isNotNull());
+
+        // the old shape of the URL is gone: counting no longer reaches anything
+        mockMvc.perform(get("/api/leagues/1")
+                        .header("Authorization", "Bearer " + founderToken))
+                .andExpect(status().isNotFound());
+        // and an id nobody was given is the same 404 as someone else's league
+        mockMvc.perform(get("/api/leagues/" + java.util.UUID.randomUUID())
+                        .header("Authorization", "Bearer " + founderToken))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/leagues/" + publicId)
+                        .header("Authorization", "Bearer " + outsiderToken))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void createJoinAndVisibilityRules() throws Exception {
         JsonNode league = createLeague("Flow League");
-        long leagueId = league.get("id").asLong();
+        String leagueId = league.get("id").asText();
         String code = league.get("inviteCode").asText();
         assertThat(code).matches("[A-HJ-KM-NP-Z2-9]{8}");
 
@@ -107,15 +133,15 @@ class PrivateLeagueFlowIT {
         mockMvc.perform(get("/api/leagues/" + leagueId)
                         .header("Authorization", "Bearer " + outsiderToken))
                 .andExpect(status().isNotFound());
-        mockMvc.perform(post("/api/leagues/%d/regenerate-code".formatted(leagueId))
+        mockMvc.perform(post("/api/leagues/%s/regenerate-code".formatted(leagueId))
                         .header("Authorization", "Bearer " + outsiderToken))
                 .andExpect(status().isNotFound());
-        mockMvc.perform(post("/api/leagues/%d/regenerate-code".formatted(leagueId))
+        mockMvc.perform(post("/api/leagues/%s/regenerate-code".formatted(leagueId))
                         .header("Authorization", "Bearer " + joinerToken))
                 .andExpect(status().isForbidden());
 
         // admin regenerates; the old code stops working
-        MvcResult regenerated = mockMvc.perform(post("/api/leagues/%d/regenerate-code".formatted(leagueId))
+        MvcResult regenerated = mockMvc.perform(post("/api/leagues/%s/regenerate-code".formatted(leagueId))
                         .header("Authorization", "Bearer " + founderToken))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -132,16 +158,16 @@ class PrivateLeagueFlowIT {
         mockMvc.perform(get("/api/leagues/mine")
                         .header("Authorization", "Bearer " + joinerToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.id == %d)].memberCount".formatted(leagueId)).value(2));
+                .andExpect(jsonPath("$[?(@.id == '%s')].memberCount".formatted(leagueId)).value(2));
 
         // admin can't leave while others remain; member leaves fine; then admin leave deletes
-        mockMvc.perform(delete("/api/leagues/%d/members/me".formatted(leagueId))
+        mockMvc.perform(delete("/api/leagues/%s/members/me".formatted(leagueId))
                         .header("Authorization", "Bearer " + founderToken))
                 .andExpect(status().isConflict());
-        mockMvc.perform(delete("/api/leagues/%d/members/me".formatted(leagueId))
+        mockMvc.perform(delete("/api/leagues/%s/members/me".formatted(leagueId))
                         .header("Authorization", "Bearer " + joinerToken))
                 .andExpect(status().isNoContent());
-        mockMvc.perform(delete("/api/leagues/%d/members/me".formatted(leagueId))
+        mockMvc.perform(delete("/api/leagues/%s/members/me".formatted(leagueId))
                         .header("Authorization", "Bearer " + founderToken))
                 .andExpect(status().isNoContent());
         mockMvc.perform(get("/api/leagues/" + leagueId)

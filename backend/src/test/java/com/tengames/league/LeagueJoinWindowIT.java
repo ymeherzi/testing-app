@@ -68,6 +68,9 @@ class LeagueJoinWindowIT {
     private LeagueMemberRepository members;
 
     @Autowired
+    private LeagueRepository leagues;
+
+    @Autowired
     private TransactionTemplate tx;
 
     private User userFor(String email) {
@@ -120,7 +123,9 @@ class LeagueJoinWindowIT {
 
         // Alice creates the league while GW1 is the current-or-next gameweek
         var league = leagueService.create(alice.getId(), "Window League");
-        assertThat(members.findByLeagueIdAndUserId(league.id(), alice.getId()).orElseThrow()
+        // the API speaks the public id; the tables inside are keyed by the row
+        long leagueId = leagues.findByPublicId(league.id()).orElseThrow().getId();
+        assertThat(members.findByLeagueIdAndUserId(leagueId, alice.getId()).orElseThrow()
                 .getJoinGameweekId()).isEqualTo(gw1);
 
         // both users predict identical scorelines in both gameweeks
@@ -137,12 +142,12 @@ class LeagueJoinWindowIT {
         // membership with join_gameweek_id = GW2 (what resolveJoinGameweekId
         // would produce once GW1's window has ended)
         League leagueEntity = tx.execute(s ->
-                members.findByLeagueIdAndUserId(league.id(), alice.getId()).orElseThrow().getLeague());
+                members.findByLeagueIdAndUserId(leagueId, alice.getId()).orElseThrow().getLeague());
         members.save(new LeagueMember(leagueEntity, bob.getId(), gw2, Instant.now()));
 
         scoreFixture(fixtureGw2, 1, 0); // both exact again → +3 globally each
 
-        var table = tableService.leagueMembersTable(league.id());
+        var table = tableService.leagueMembersTable(leagueId);
         var aliceRow = table.stream().filter(e -> e.userId().equals(alice.getPublicId())).findFirst().orElseThrow();
         var bobRow = table.stream().filter(e -> e.userId().equals(bob.getPublicId())).findFirst().orElseThrow();
         assertThat(aliceRow.points()).isEqualTo(6); // GW1 + GW2

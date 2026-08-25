@@ -4,6 +4,7 @@ import com.tengames.league.LeagueTableService.MemberEntry;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.List;
+import java.util.UUID;
 
 public final class LeagueDtos {
 
@@ -16,11 +17,11 @@ public final class LeagueDtos {
     public record JoinLeagueRequest(@NotBlank @Size(max = 12) String code) {
     }
 
-    public record LeagueSummary(long id, String name, String inviteCode, boolean admin,
+    public record LeagueSummary(UUID id, String name, String inviteCode, boolean admin,
                                 long memberCount, Long myRank, long myPoints) {
     }
 
-    public record LeagueDetail(long id, String name, String inviteCode, boolean admin,
+    public record LeagueDetail(UUID id, String name, String inviteCode, boolean admin,
                                int maxMembers, List<MemberEntry> members, MemberEntry me) {
     }
 }

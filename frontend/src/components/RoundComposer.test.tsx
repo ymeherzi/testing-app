@@ -17,6 +17,13 @@ function team(name: string) {
   return { id: name.length, name, shortName: name, crestUrl: null }
 }
 
+/** Kickoffs live in the future: the picker only offers matches not yet played. */
+function inDays(days: number, hour: number) {
+  const when = new Date(Date.now() + days * 24 * 60 * 60 * 1000)
+  when.setUTCHours(hour, 0, 0, 0)
+  return when.toISOString()
+}
+
 /** Thirty Premier League fixtures ahead of it, then the one we are after. */
 function pool() {
   const busy = Array.from({ length: 30 }, (_, i) => ({
@@ -25,7 +32,7 @@ function pool() {
       competitionCode: 'PL',
       homeTeam: team(`Home ${i}`),
       awayTeam: team(`Away ${i}`),
-      kickoffUtc: '2026-08-22T14:00:00Z',
+      kickoffUtc: inDays(1, 14),
       status: 'TIMED',
       homeScore: null,
       awayScore: null,
@@ -41,7 +48,7 @@ function pool() {
         competitionCode: 'ELC',
         homeTeam: team('West Brom'),
         awayTeam: team('Burnley'),
-        kickoffUtc: '2026-08-23T11:00:00Z',
+        kickoffUtc: inDays(2, 11),
         status: 'TIMED',
         homeScore: null,
         awayScore: null,

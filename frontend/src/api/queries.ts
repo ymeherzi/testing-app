@@ -153,11 +153,11 @@ export function useMyLeagues() {
   })
 }
 
-export function useLeagueDetail(id: number) {
+export function useLeagueDetail(id: string | undefined) {
   return useQuery({
     queryKey: ['leagues', 'detail', id],
     queryFn: () => api<LeagueDetail>(`/api/leagues/${id}`),
-    enabled: id > 0,
+    enabled: Boolean(id),
     refetchInterval: 60_000,
   })
 }
@@ -176,12 +176,12 @@ export function useLeagueActions() {
     onSettled: invalidate,
   })
   const leave = useMutation({
-    mutationFn: (leagueId: number) =>
+    mutationFn: (leagueId: string) =>
       api(`/api/leagues/${leagueId}/members/me`, { method: 'DELETE' }),
     onSettled: invalidate,
   })
   const regenerateCode = useMutation({
-    mutationFn: (leagueId: number) =>
+    mutationFn: (leagueId: string) =>
       api<LeagueDetail>(`/api/leagues/${leagueId}/regenerate-code`, { method: 'POST' }),
     onSettled: invalidate,
   })

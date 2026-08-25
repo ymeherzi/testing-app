@@ -154,7 +154,7 @@ export interface MemberEntry {
 }
 
 export interface LeagueSummary {
-  id: number
+  id: string
   name: string
   inviteCode: string
   admin: boolean
@@ -164,7 +164,7 @@ export interface LeagueSummary {
 }
 
 export interface LeagueDetail {
-  id: number
+  id: string
   name: string
   inviteCode: string
   admin: boolean

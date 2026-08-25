@@ -88,8 +88,7 @@ export function ScopedTablePage({ kind }: { kind: 'country' | 'club' | 'competit
 export function PrivateLeaguePage() {
   const t = useT()
   const { id } = useParams()
-  const leagueId = Number(id)
-  const { data: league, error } = useLeagueDetail(leagueId)
+  const { data: league, error } = useLeagueDetail(id)
   const { leave, regenerateCode } = useLeagueActions()
   const { user } = useAuth()
   const navigate = useNavigate()

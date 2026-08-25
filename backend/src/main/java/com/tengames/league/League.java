@@ -16,6 +16,10 @@ public class League {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /** Stable identifier safe to expose in URLs and payloads. */
+    @Column(name = "public_id", nullable = false, updatable = false)
+    private java.util.UUID publicId = java.util.UUID.randomUUID();
+
     @Column(nullable = false)
     private String name;
 
@@ -42,6 +46,10 @@ public class League {
 
     public Long getId() {
         return id;
+    }
+
+    public java.util.UUID getPublicId() {
+        return publicId;
     }
 
     public String getName() {
